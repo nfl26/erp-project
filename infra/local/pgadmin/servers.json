@@ -1,0 +1,14 @@
+{
+  "Servers": {
+    "1": {
+      "Name": "ERP Local",
+      "Group": "Local",
+      "Host": "postgres",
+      "Port": 5432,
+      "MaintenanceDB": "erp_db",
+      "Username": "erp_admin",
+      "SSLMode": "prefer",
+      "Comment": "Entorno local Docker — password en .env (POSTGRES_PASSWORD)"
+    }
+  }
+}

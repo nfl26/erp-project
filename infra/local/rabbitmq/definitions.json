@@ -1,0 +1,93 @@
+{
+  "rabbit_version": "3.12.0",
+  "rabbitmq_version": "3.12.0",
+  "product_name": "RabbitMQ",
+  "product_version": "3.12.0",
+
+  "vhosts": [
+    { "name": "/" },
+    { "name": "/erp" }
+  ],
+
+  "exchanges": [
+    {
+      "name": "bodega.events",
+      "vhost": "/erp",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "ventas.events",
+      "vhost": "/erp",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "produccion.events",
+      "vhost": "/erp",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    },
+    {
+      "name": "auth.events",
+      "vhost": "/erp",
+      "type": "topic",
+      "durable": true,
+      "auto_delete": false,
+      "internal": false,
+      "arguments": {}
+    }
+  ],
+
+  "queues": [
+    {
+      "name": "dlq.bodega",
+      "vhost": "/erp",
+      "durable": true,
+      "auto_delete": false,
+      "exclusive": false,
+      "arguments": {}
+    },
+    {
+      "name": "dlq.ventas",
+      "vhost": "/erp",
+      "durable": true,
+      "auto_delete": false,
+      "exclusive": false,
+      "arguments": {}
+    },
+    {
+      "name": "dlq.produccion",
+      "vhost": "/erp",
+      "durable": true,
+      "auto_delete": false,
+      "exclusive": false,
+      "arguments": {}
+    },
+    {
+      "name": "dlq.auth",
+      "vhost": "/erp",
+      "durable": true,
+      "auto_delete": false,
+      "exclusive": false,
+      "arguments": {}
+    }
+  ],
+
+  "bindings": [],
+  "users": [],
+  "permissions": [],
+  "topic_permissions": [],
+  "parameters": [],
+  "global_parameters": [],
+  "policies": []
+}

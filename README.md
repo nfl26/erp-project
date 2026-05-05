@@ -52,6 +52,30 @@ erp-project/
 └── .github/                    ← workflows, templates, CODEOWNERS
 ```
 
+## Desarrollo local
+
+Requisitos: Docker Desktop 4.x, Docker Compose v2, 2 GB RAM libres.
+
+```bash
+cp .env.example .env      # copiar template de variables
+./scripts/dev-up.sh       # levantar PostgreSQL + Redis + pgAdmin + RabbitMQ
+```
+
+| Servicio | URL |
+|---|---|
+| PostgreSQL | `localhost:5432` |
+| pgAdmin 4 | `http://localhost:5050` |
+| RabbitMQ UI | `http://localhost:15672` |
+| Redis | `localhost:6379` |
+
+Ver guía completa: [`docs/runbooks/dev-environment.md`](docs/runbooks/dev-environment.md)
+
+```bash
+./scripts/dev-down.sh     # detener (conserva datos)
+./scripts/dev-reset.sh    # reset completo (borra volúmenes)
+./scripts/dev-psql.sh     # shell psql en tenant_demo
+```
+
 ## Arrancar el proyecto
 
 1. Leer [`CLAUDE.md`](CLAUDE.md) — instrucciones para agentes IA y supervisores.

@@ -1,0 +1,28 @@
+# Overrides para CI / tests de integración
+# Uso: docker compose -f docker-compose.yml -f docker-compose.test.yml up -d
+#
+# Diferencias respecto al base:
+#  - Puertos de host distintos (+1) para no colisionar con el entorno dev local
+#  - Sin pgAdmin (no se necesita en CI)
+#  - Sin restart (el runner de CI gestiona el ciclo de vida)
+
+services:
+  postgres:
+    ports:
+      - "5433:5432"
+    restart: "no"
+
+  redis:
+    ports:
+      - "6380:6379"
+    restart: "no"
+
+  rabbitmq:
+    ports:
+      - "5673:5672"
+      - "15673:15672"
+    restart: "no"
+
+  pgadmin:
+    profiles:
+      - donotstart

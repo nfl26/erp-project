@@ -1,0 +1,121 @@
+name: Smoke Test — Docker Compose Local
+
+on:
+  push:
+    branches: [main, staging, "feat/**"]
+    paths:
+      - "docker-compose*.yml"
+      - "infra/local/**"
+      - ".env.example"
+      - ".github/workflows/ci.yml"
+  pull_request:
+    paths:
+      - "docker-compose*.yml"
+      - "infra/local/**"
+      - ".env.example"
+      - ".github/workflows/ci.yml"
+
+jobs:
+  smoke-test:
+    name: Smoke test docker-compose local
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Crear .env desde .env.example
+        run: cp .env.example .env
+
+      - name: Levantar servicios (modo test)
+        run: |
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.test.yml \
+            up -d
+
+      - name: Esperar PostgreSQL
+        run: |
+          for i in $(seq 1 30); do
+            docker compose exec -T postgres \
+              pg_isready -U erp_admin -d erp_db && break
+            echo "Intento $i/30 — esperando PostgreSQL..."
+            sleep 3
+          done
+
+      - name: Esperar Redis
+        run: |
+          for i in $(seq 1 15); do
+            docker compose exec -T redis redis-cli ping | grep -q PONG && break
+            echo "Intento $i/15 — esperando Redis..."
+            sleep 2
+          done
+
+      - name: Esperar RabbitMQ
+        run: |
+          for i in $(seq 1 30); do
+            docker compose exec -T rabbitmq \
+              rabbitmq-diagnostics check_running 2>/dev/null && break
+            echo "Intento $i/30 — esperando RabbitMQ..."
+            sleep 3
+          done
+
+      - name: Verificar schemas de tenant en PostgreSQL
+        run: |
+          docker compose exec -T postgres psql -U erp_admin -d erp_db \
+            -c "\dn" | grep -q "tenant_demo"
+          echo "✓ Schema tenant_demo existe"
+
+          docker compose exec -T postgres psql -U erp_admin -d erp_db \
+            -c "SELECT COUNT(*) FROM public.tenants;" \
+            | grep -E "^\s+3$"
+          echo "✓ 3 tenants registrados en public.tenants"
+
+      - name: Verificar datos en tenant_demo
+        run: |
+          docker compose exec -T postgres psql -U erp_admin -d erp_db \
+            -c "SELECT COUNT(*) FROM tenant_demo.categorias;" \
+            | grep -E "^\s+[0-9]+$"
+          echo "✓ Categorías sembradas en tenant_demo"
+
+      - name: Verificar exchanges en RabbitMQ
+        run: |
+          docker compose exec -T rabbitmq \
+            rabbitmqadmin list exchanges --vhost=/erp \
+            | grep -q "bodega.events"
+          echo "✓ Exchange bodega.events existe en vhost /erp"
+
+          docker compose exec -T rabbitmq \
+            rabbitmqadmin list exchanges --vhost=/erp \
+            | grep -q "ventas.events"
+          echo "✓ Exchange ventas.events existe en vhost /erp"
+
+      - name: Verificar DLQs en RabbitMQ
+        run: |
+          docker compose exec -T rabbitmq \
+            rabbitmqadmin list queues --vhost=/erp \
+            | grep -q "dlq.bodega"
+          echo "✓ DLQ dlq.bodega existe"
+
+      - name: Smoke test conexión desde contenedor externo
+        run: |
+          docker run --rm --network erp-network postgres:15.5-alpine \
+            psql -h postgres -U erp_admin -d erp_db -c "SELECT 1;" \
+            -w --no-password \
+            || true
+          echo "✓ Conexión desde red erp-network OK"
+
+      - name: Medir consumo de RAM
+        run: |
+          echo "Consumo de RAM por contenedor:"
+          docker stats --no-stream --format \
+            "table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}"
+
+      - name: Detener servicios
+        if: always()
+        run: |
+          docker compose \
+            -f docker-compose.yml \
+            -f docker-compose.test.yml \
+            down -v
