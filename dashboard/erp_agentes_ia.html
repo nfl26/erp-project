@@ -1,0 +1,1318 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ERP · Orquestación IA + Humanos</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600;700&family=Geist+Mono:wght@400;500&display=swap');
+
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+
+:root{
+  --bg:#0a0a0c;
+  --bg2:#111114;
+  --bg3:#17181c;
+  --bg4:#1e1f25;
+  --bg5:#272830;
+  --border:rgba(255,255,255,0.06);
+  --border2:rgba(255,255,255,0.11);
+  --border3:rgba(255,255,255,0.18);
+  --text:#e4e4ea;
+  --text2:#b8b8c4;
+  --muted:#6b6b7a;
+  --muted2:#9595a6;
+
+  --ai:#00d4aa;
+  --ai-d:#00a885;
+  --human:#c47de0;
+  --human-d:#9b5eb8;
+  --warn:#f0a838;
+  --danger:#ff5577;
+  --info:#5b8fff;
+  --ok:#2dbe7a;
+
+  --mono:'Geist Mono',ui-monospace,monospace;
+  --sans:'Geist',system-ui,sans-serif;
+}
+
+body{
+  background:var(--bg);
+  color:var(--text);
+  font-family:var(--sans);
+  font-size:14px;
+  min-height:100vh;
+  font-feature-settings:"ss01","cv11";
+  -webkit-font-smoothing:antialiased;
+}
+
+/* ╔══════════════════════════════════════════╗
+   ║          NAVEGACIÓN PRINCIPAL            ║
+   ╚══════════════════════════════════════════╝ */
+.nav{
+  position:sticky;top:0;z-index:200;
+  background:rgba(10,10,12,.88);
+  backdrop-filter:blur(14px);
+  -webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--border);
+  padding:0 28px;
+  display:flex;align-items:stretch;
+}
+.nav-brand{
+  font-size:12px;font-weight:700;color:var(--ai);
+  letter-spacing:.1em;
+  display:flex;align-items:center;gap:6px;
+  padding-right:20px;border-right:1px solid var(--border);margin-right:4px;
+}
+.nav-brand .dot{width:6px;height:6px;border-radius:50%;background:var(--ai);box-shadow:0 0 8px var(--ai)}
+.nav-brand span{color:var(--muted);font-weight:400}
+.tab{
+  font-size:12px;font-weight:500;color:var(--muted2);
+  padding:16px 18px;
+  border-bottom:2px solid transparent;
+  cursor:pointer;transition:color .15s,border-color .15s;
+  letter-spacing:.02em;white-space:nowrap;
+}
+.tab:hover{color:var(--text)}
+.tab.active{color:var(--text);border-bottom-color:var(--ai)}
+.nav-right{
+  margin-left:auto;display:flex;align-items:center;gap:18px;
+  padding-left:20px;border-left:1px solid var(--border);
+}
+.hstat{text-align:right}
+.hstat-val{font-family:var(--mono);font-size:15px;font-weight:500;line-height:1}
+.hstat-lbl{font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:.08em;text-transform:uppercase}
+
+/* ╔══════════════════════════════════════════╗
+   ║                 VIEWS                    ║
+   ╚══════════════════════════════════════════╝ */
+.view{display:none;padding:28px;max-width:1320px;margin:0 auto}
+.view.active{display:block;animation:fadeIn .25s ease}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.view-title{font-size:22px;font-weight:700;margin-bottom:6px;letter-spacing:-0.015em}
+.view-sub{font-size:13px;color:var(--muted2);margin-bottom:28px;line-height:1.6;max-width:760px}
+
+/* ╔══════════════════════════════════════════╗
+   ║         VIEW 1: MODELO HÍBRIDO           ║
+   ╚══════════════════════════════════════════╝ */
+.model-hero{
+  background:linear-gradient(180deg,var(--bg2) 0%,var(--bg) 100%);
+  border:1px solid var(--border);
+  border-radius:16px;padding:32px;margin-bottom:28px;
+  position:relative;overflow:hidden;
+}
+.model-hero::before{
+  content:'';position:absolute;top:-40%;right:-20%;width:60%;height:140%;
+  background:radial-gradient(ellipse,rgba(0,212,170,.06),transparent 60%);
+  pointer-events:none;
+}
+.hero-eyebrow{font-size:10px;font-weight:600;color:var(--ai);letter-spacing:.12em;text-transform:uppercase;margin-bottom:12px;position:relative}
+.hero-title{font-size:28px;font-weight:700;line-height:1.15;margin-bottom:14px;letter-spacing:-0.02em;position:relative;max-width:640px}
+.hero-title .hl{color:var(--human)}
+.hero-title .hl2{color:var(--ai)}
+.hero-desc{font-size:14px;color:var(--text2);line-height:1.65;max-width:720px;position:relative}
+
+.model-stack{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:32px}
+@media(max-width:820px){.model-stack{grid-template-columns:1fr}}
+
+.pillar{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;padding:24px;
+  position:relative;overflow:hidden;
+  border-top:3px solid;
+}
+.pillar.humans{border-top-color:var(--human)}
+.pillar.agents{border-top-color:var(--ai)}
+.pillar-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.pillar-icon{
+  width:38px;height:38px;border-radius:10px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:700;font-size:15px;
+}
+.pillar.humans .pillar-icon{background:rgba(196,125,224,.12);color:var(--human)}
+.pillar.agents .pillar-icon{background:rgba(0,212,170,.12);color:var(--ai)}
+.pillar-title{font-size:17px;font-weight:700}
+.pillar.humans .pillar-title{color:var(--human)}
+.pillar.agents .pillar-title{color:var(--ai)}
+.pillar-sub{font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:.05em;margin-top:2px}
+
+.pillar-role{
+  background:var(--bg3);border:1px solid var(--border);
+  border-radius:8px;padding:12px 14px;margin-bottom:8px;
+  display:flex;align-items:flex-start;gap:12px;
+  transition:border-color .15s,background .15s;
+}
+.pillar-role:hover{border-color:var(--border2);background:var(--bg4)}
+.role-badge{
+  font-family:var(--mono);font-size:10px;font-weight:600;
+  padding:3px 8px;border-radius:4px;flex-shrink:0;
+  margin-top:1px;letter-spacing:.03em;
+}
+.humans .role-badge{background:rgba(196,125,224,.12);color:var(--human)}
+.agents .role-badge{background:rgba(0,212,170,.12);color:var(--ai)}
+.role-body{flex:1;min-width:0}
+.role-name{font-size:13px;font-weight:600;margin-bottom:3px}
+.role-desc{font-size:12px;color:var(--muted2);line-height:1.5}
+
+/* Flujo de trabajo */
+.flow-section{margin-bottom:32px}
+.section-heading{font-size:16px;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:10px}
+.section-heading::before{content:'';width:3px;height:16px;background:var(--ai);border-radius:2px}
+.flow-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px}
+@media(max-width:900px){.flow-steps{grid-template-columns:repeat(2,1fr)}}
+.flow-step{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:10px;padding:14px;position:relative;
+}
+.flow-num{
+  font-family:var(--mono);font-size:10px;font-weight:600;
+  color:var(--muted);letter-spacing:.05em;margin-bottom:8px;
+}
+.flow-actor{font-size:11px;font-weight:600;margin-bottom:4px;font-family:var(--mono);letter-spacing:.03em}
+.flow-actor.h{color:var(--human)}
+.flow-actor.a{color:var(--ai)}
+.flow-title{font-size:13px;font-weight:600;margin-bottom:4px;line-height:1.3}
+.flow-desc{font-size:11px;color:var(--muted2);line-height:1.45}
+
+/* Stats row */
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:32px}
+.stat-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:10px;padding:16px 18px;
+}
+.stat-big{font-family:var(--mono);font-size:28px;font-weight:500;line-height:1;letter-spacing:-0.02em}
+.stat-small{font-size:11px;color:var(--muted2);margin-top:6px;line-height:1.4}
+
+/* ╔══════════════════════════════════════════╗
+   ║         VIEW 2: AGENTES IA               ║
+   ╚══════════════════════════════════════════╝ */
+.agents-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(330px,1fr));gap:16px;margin-bottom:32px}
+.agent-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;overflow:hidden;
+  transition:border-color .2s,transform .15s;
+  border-top:3px solid;
+}
+.agent-card:hover{border-color:var(--border2);transform:translateY(-1px)}
+
+.agent-card[data-color="teal"]{border-top-color:#00d4aa}
+.agent-card[data-color="coral"]{border-top-color:#ff7040}
+.agent-card[data-color="blue"]{border-top-color:#5b8fff}
+.agent-card[data-color="purple"]{border-top-color:#c47de0}
+.agent-card[data-color="amber"]{border-top-color:#f0c040}
+.agent-card[data-color="pink"]{border-top-color:#ff6b9d}
+.agent-card[data-color="green"]{border-top-color:#2dbe7a}
+
+.agent-head{padding:18px 20px 14px;border-bottom:1px solid var(--border)}
+.agent-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:10px}
+.agent-avatar{
+  width:44px;height:44px;border-radius:10px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:700;font-size:14px;
+}
+.agent-card[data-color="teal"] .agent-avatar{background:rgba(0,212,170,.12);color:#00d4aa}
+.agent-card[data-color="coral"] .agent-avatar{background:rgba(255,112,64,.12);color:#ff7040}
+.agent-card[data-color="blue"] .agent-avatar{background:rgba(91,143,255,.12);color:#5b8fff}
+.agent-card[data-color="purple"] .agent-avatar{background:rgba(196,125,224,.12);color:#c47de0}
+.agent-card[data-color="amber"] .agent-avatar{background:rgba(240,192,64,.12);color:#f0c040}
+.agent-card[data-color="pink"] .agent-avatar{background:rgba(255,107,157,.12);color:#ff6b9d}
+.agent-card[data-color="green"] .agent-avatar{background:rgba(45,190,122,.12);color:#2dbe7a}
+
+.agent-id-block{flex:1;min-width:0}
+.agent-id{font-family:var(--mono);font-size:10px;color:var(--muted);letter-spacing:.08em;margin-bottom:2px}
+.agent-name{font-size:15px;font-weight:700;line-height:1.2}
+.agent-tag{
+  display:inline-block;font-size:10px;font-family:var(--mono);
+  padding:2px 8px;border-radius:3px;margin-top:4px;letter-spacing:.04em;
+  background:var(--bg4);color:var(--muted2);
+}
+.agent-mission{font-size:12px;color:var(--text2);line-height:1.55;padding:0 20px 14px}
+
+.agent-section{padding:12px 20px;border-top:1px solid var(--border)}
+.agent-label{
+  font-size:9px;font-weight:600;color:var(--muted);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px;
+  display:flex;align-items:center;gap:6px;
+}
+.agent-label::before{content:'';width:2px;height:10px;background:var(--muted);opacity:.5;border-radius:1px}
+
+.capabilities{display:flex;flex-wrap:wrap;gap:5px}
+.capability{
+  font-size:10px;padding:3px 8px;border-radius:4px;
+  background:var(--bg4);color:var(--muted2);
+  border:1px solid var(--border);font-family:var(--mono);
+}
+
+.supervisor-row{display:flex;align-items:center;gap:10px}
+.sup-avatar{
+  width:26px;height:26px;border-radius:50%;flex-shrink:0;
+  background:rgba(196,125,224,.15);color:var(--human);
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:600;font-size:10px;
+}
+.sup-info{flex:1;min-width:0}
+.sup-name{font-size:12px;font-weight:600}
+.sup-role{font-size:11px;color:var(--muted)}
+
+.agent-contract{
+  background:var(--bg);border:1px solid var(--border);
+  border-radius:6px;padding:10px 12px;
+  font-family:var(--mono);font-size:10.5px;color:var(--text2);
+  line-height:1.6;white-space:pre-wrap;
+  max-height:120px;overflow-y:auto;
+}
+.agent-contract::-webkit-scrollbar{width:4px}
+.agent-contract::-webkit-scrollbar-track{background:transparent}
+.agent-contract::-webkit-scrollbar-thumb{background:var(--border2);border-radius:2px}
+
+.agent-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-top:1px solid var(--border)}
+.am{padding:10px 14px;text-align:center;border-right:1px solid var(--border)}
+.am:last-child{border-right:none}
+.am-val{font-family:var(--mono);font-size:14px;font-weight:600}
+.am-lbl{font-size:9px;color:var(--muted);margin-top:2px;letter-spacing:.04em;text-transform:uppercase}
+
+/* ╔══════════════════════════════════════════╗
+   ║         VIEW 3: BACKLOG                  ║
+   ╚══════════════════════════════════════════╝ */
+.backlog-toolbar{
+  display:flex;align-items:center;gap:10px;margin-bottom:20px;flex-wrap:wrap;
+  padding:12px 14px;background:var(--bg2);border:1px solid var(--border);border-radius:10px;
+}
+.tb-label{font-size:11px;color:var(--muted);font-family:var(--mono);letter-spacing:.05em;text-transform:uppercase}
+.chip{
+  font-size:11px;font-weight:500;padding:5px 12px;
+  border-radius:20px;border:1px solid var(--border2);background:transparent;
+  color:var(--muted2);cursor:pointer;transition:all .12s;
+  font-family:var(--sans);
+}
+.chip:hover{border-color:var(--ai);color:var(--ai)}
+.chip.active{background:rgba(0,212,170,.1);border-color:var(--ai);color:var(--ai)}
+
+.agent-group{margin-bottom:22px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--bg2)}
+.ag-head{
+  display:flex;align-items:center;gap:12px;padding:14px 20px;
+  background:var(--bg3);cursor:pointer;user-select:none;
+  transition:background .15s;border-bottom:1px solid var(--border);
+}
+.ag-head:hover{background:var(--bg4)}
+.ag-avatar{
+  width:32px;height:32px;border-radius:8px;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-weight:700;font-size:11px;
+}
+.ag-info{flex:1}
+.ag-title{font-size:13px;font-weight:700}
+.ag-sub{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:1px}
+.ag-meta{font-size:11px;color:var(--muted2);font-family:var(--mono);display:flex;gap:14px;align-items:center}
+.ag-chev{color:var(--muted);transition:transform .2s;font-size:12px}
+.ag-chev.open{transform:rotate(180deg)}
+
+.task-table{width:100%;border-collapse:collapse}
+.task-table thead tr{background:var(--bg2);border-bottom:1px solid var(--border)}
+.task-table th{
+  font-size:9px;font-weight:600;color:var(--muted);
+  letter-spacing:.1em;text-transform:uppercase;
+  padding:9px 12px;text-align:left;white-space:nowrap;
+}
+.task-table tbody tr{border-top:1px solid var(--border);transition:background .1s}
+.task-table tbody tr:hover{background:var(--bg3)}
+.task-table td{padding:10px 12px;vertical-align:middle}
+
+.task-id{font-family:var(--mono);font-size:10px;color:var(--muted);white-space:nowrap}
+.task-title{font-size:12.5px;color:var(--text);line-height:1.4}
+.task-arch{
+  font-family:var(--mono);font-size:10px;color:var(--muted2);
+  margin-top:3px;display:inline-block;padding:1px 6px;
+  background:var(--bg4);border-radius:3px;
+}
+
+.status{
+  display:inline-flex;align-items:center;gap:5px;
+  font-size:10px;font-weight:600;padding:3px 9px;border-radius:4px;
+  cursor:pointer;transition:opacity .15s;border:1px solid transparent;
+  white-space:nowrap;user-select:none;
+}
+.status:hover{opacity:.7}
+.status::before{content:'';width:5px;height:5px;border-radius:50%;flex-shrink:0}
+.s-todo{background:rgba(107,107,122,.1);color:var(--muted2);border-color:rgba(107,107,122,.2)}
+.s-todo::before{background:var(--muted)}
+.s-progress{background:rgba(240,168,50,.12);color:var(--warn);border-color:rgba(240,168,50,.25)}
+.s-progress::before{background:var(--warn);box-shadow:0 0 5px rgba(240,168,50,.6)}
+.s-review{background:rgba(91,143,255,.12);color:var(--info);border-color:rgba(91,143,255,.25)}
+.s-review::before{background:var(--info);box-shadow:0 0 5px rgba(91,143,255,.6)}
+.s-done{background:rgba(0,212,170,.12);color:var(--ai);border-color:rgba(0,212,170,.25)}
+.s-done::before{background:var(--ai)}
+.s-blocked{background:rgba(255,85,119,.12);color:var(--danger);border-color:rgba(255,85,119,.25)}
+.s-blocked::before{background:var(--danger);box-shadow:0 0 5px rgba(255,85,119,.5)}
+
+.pri{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;font-weight:500;white-space:nowrap}
+.pc{background:rgba(255,85,119,.13);color:var(--danger)}
+.ph{background:rgba(240,168,50,.13);color:var(--warn)}
+.pm{background:rgba(91,143,255,.13);color:var(--info)}
+.pl{background:rgba(107,107,122,.15);color:var(--muted2)}
+
+.sup-cell{display:flex;align-items:center;gap:6px}
+.sup-cell .sup-avatar{width:22px;height:22px;font-size:9px}
+.sup-cell-name{font-size:11px;color:var(--muted2)}
+
+.est-cell{font-family:var(--mono);font-size:11px;color:var(--muted2);text-align:right}
+.sprint-cell{font-family:var(--mono);font-size:9px;padding:2px 7px;border-radius:3px;white-space:nowrap}
+.sp0{background:rgba(124,106,247,.13);color:#9b8cff}
+.sp1{background:rgba(0,212,170,.1);color:var(--ai)}
+.sp2{background:rgba(91,143,255,.1);color:var(--info)}
+.sp3{background:rgba(255,107,157,.1);color:#ff6b9d}
+
+/* ╔══════════════════════════════════════════╗
+   ║       VIEW 4: CEREMONIAS                 ║
+   ╚══════════════════════════════════════════╝ */
+.cer-intro{font-size:13px;color:var(--muted2);line-height:1.65;margin-bottom:28px;max-width:760px}
+.cer-intro strong{color:var(--text)}
+
+.cer-category{margin-bottom:32px}
+.cer-cat-head{
+  font-size:11px;font-weight:600;color:var(--muted);
+  letter-spacing:.1em;text-transform:uppercase;margin-bottom:14px;
+  display:flex;align-items:center;gap:10px;
+}
+.cer-cat-head::after{content:'';flex:1;height:1px;background:var(--border)}
+
+.cer-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+.cer-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:12px;padding:18px 20px;
+  border-left:3px solid;
+}
+.cer-card.client{border-left-color:var(--human)}
+.cer-card.internal{border-left-color:var(--ai)}
+.cer-top{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px}
+.cer-name{font-size:14px;font-weight:700;line-height:1.2}
+.cer-cadence{
+  font-family:var(--mono);font-size:10px;padding:3px 8px;border-radius:4px;
+  letter-spacing:.04em;flex-shrink:0;white-space:nowrap;
+}
+.cer-card.client .cer-cadence{background:rgba(196,125,224,.12);color:var(--human)}
+.cer-card.internal .cer-cadence{background:rgba(0,212,170,.12);color:var(--ai)}
+.cer-dur{font-size:11px;color:var(--muted);font-family:var(--mono);margin-top:2px}
+.cer-desc{font-size:12px;color:var(--text2);line-height:1.55;margin-bottom:12px}
+.cer-details{display:flex;flex-direction:column;gap:6px}
+.cer-det-row{display:flex;gap:10px;font-size:11px;line-height:1.45}
+.cer-det-label{color:var(--muted);font-family:var(--mono);min-width:70px;font-size:10px;letter-spacing:.03em;text-transform:uppercase;flex-shrink:0;padding-top:1px}
+.cer-det-val{color:var(--text2);flex:1}
+
+/* ╔══════════════════════════════════════════╗
+   ║      VIEW 5: PIPELINE DE CALIDAD         ║
+   ╚══════════════════════════════════════════╝ */
+.pipe-hero{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:14px;padding:24px;margin-bottom:24px;
+}
+.pipe-steps{display:flex;gap:0;align-items:stretch;overflow-x:auto;padding-bottom:4px}
+.pipe-step{
+  flex:1;min-width:140px;background:var(--bg3);border:1px solid var(--border);
+  border-radius:10px;padding:14px;position:relative;margin-right:24px;
+}
+.pipe-step:last-child{margin-right:0}
+.pipe-step::after{
+  content:'→';position:absolute;right:-18px;top:50%;transform:translateY(-50%);
+  font-size:18px;color:var(--muted);font-family:var(--mono);
+}
+.pipe-step:last-child::after{display:none}
+.pipe-actor{
+  display:inline-block;font-size:9px;font-weight:600;font-family:var(--mono);
+  padding:2px 7px;border-radius:3px;letter-spacing:.06em;margin-bottom:8px;
+}
+.pipe-actor.a{background:rgba(0,212,170,.12);color:var(--ai)}
+.pipe-actor.h{background:rgba(196,125,224,.12);color:var(--human)}
+.pipe-actor.auto{background:rgba(91,143,255,.12);color:var(--info)}
+.pipe-title{font-size:12px;font-weight:600;margin-bottom:4px}
+.pipe-desc{font-size:10.5px;color:var(--muted2);line-height:1.45}
+
+.guardrails{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+.guard-card{
+  background:var(--bg2);border:1px solid var(--border);
+  border-radius:10px;padding:14px 16px;
+}
+.guard-title{font-size:12px;font-weight:600;margin-bottom:6px;display:flex;align-items:center;gap:8px}
+.guard-icon{
+  width:22px;height:22px;border-radius:5px;
+  display:flex;align-items:center;justify-content:center;
+  font-family:var(--mono);font-size:11px;font-weight:700;
+  background:rgba(0,212,170,.1);color:var(--ai);
+}
+.guard-desc{font-size:11px;color:var(--muted2);line-height:1.5}
+
+.hidden{display:none}
+
+/* Scrollbar general */
+::-webkit-scrollbar{width:8px;height:8px}
+::-webkit-scrollbar-track{background:var(--bg)}
+::-webkit-scrollbar-thumb{background:var(--border2);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:var(--border3)}
+
+/* Responsive */
+@media(max-width:640px){
+  .nav{padding:0 14px;overflow-x:auto}
+  .view{padding:20px 14px}
+  .hero-title{font-size:22px}
+  .nav-right{display:none}
+  .task-table th:nth-child(5),.task-table td:nth-child(5),
+  .task-table th:nth-child(6),.task-table td:nth-child(6){display:none}
+}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand"><span class="dot"></span>ERP<span>/</span>AI·OPS</div>
+  <div class="tab active" data-view="modelo">Modelo</div>
+  <div class="tab" data-view="agentes">Agentes IA</div>
+  <div class="tab" data-view="backlog">Backlog</div>
+  <div class="tab" data-view="ceremonias">Ceremonias</div>
+  <div class="tab" data-view="pipeline">Pipeline de calidad</div>
+  <div class="nav-right">
+    <div class="hstat"><div class="hstat-val" id="h-agents" style="color:var(--ai)">7</div><div class="hstat-lbl">Agentes</div></div>
+    <div class="hstat"><div class="hstat-val" id="h-humans" style="color:var(--human)">7</div><div class="hstat-lbl">Humanos</div></div>
+    <div class="hstat"><div class="hstat-val" id="h-tasks">0</div><div class="hstat-lbl">Tareas</div></div>
+    <div class="hstat"><div class="hstat-val" id="h-done" style="color:var(--ok)">0%</div><div class="hstat-lbl">Hecho</div></div>
+  </div>
+</nav>
+
+<!-- ═════════════ VIEW: MODELO ═════════════ -->
+<div class="view active" id="v-modelo">
+  <section class="model-hero">
+    <div class="hero-eyebrow">Modelo operativo</div>
+    <h1 class="hero-title">7 <span class="hl">supervisores humanos</span> orquestando <span class="hl2">7 agentes IA</span> especializados.</h1>
+    <p class="hero-desc">Los humanos toman decisiones de diseño, comunican con cliente y validan reglas de negocio. Los agentes IA producen código, tests, migraciones y documentación. Ningún artefacto llega a producción sin un humano responsable que lo haya revisado y firmado.</p>
+  </section>
+
+  <div class="model-stack">
+    <div class="pillar humans">
+      <div class="pillar-head">
+        <div class="pillar-icon">H</div>
+        <div><div class="pillar-title">Equipo humano</div><div class="pillar-sub">7 ROLES · SUPERVISIÓN · DECISIÓN</div></div>
+      </div>
+      <div class="pillar-role"><span class="role-badge">TL</span><div class="role-body"><div class="role-name">Tech Lead / Arquitecto</div><div class="role-desc">Define ADRs, valida arquitectura, revisa PRs críticos, desbloquea.</div></div></div>
+      <div class="pillar-role"><span class="role-badge">PO</span><div class="role-body"><div class="role-name">Product Owner / Analista</div><div class="role-desc">Enlace con cliente, mapea Excel a reglas de negocio, valida demos.</div></div></div>
+      <div class="pillar-role"><span class="role-badge">S1</span><div class="role-body"><div class="role-name">Supervisor backend core</div><div class="role-desc">Supervisa agentes de NestJS, auth, bodega y ventas.</div></div></div>
+      <div class="pillar-role"><span class="role-badge">S2</span><div class="role-body"><div class="role-name">Supervisor dominio producción</div><div class="role-desc">Supervisa agente Spring Boot, valida cálculo de costos contra Excel.</div></div></div>
+      <div class="pillar-role"><span class="role-badge">S3</span><div class="role-body"><div class="role-name">Supervisor frontend</div><div class="role-desc">Supervisa agentes Next.js y Angular, QA de experiencia de usuario.</div></div></div>
+      <div class="pillar-role"><span class="role-badge">DO</span><div class="role-body"><div class="role-name">DevOps / Plataforma</div><div class="role-desc">Infra, CI/CD, observabilidad. Supervisa agente de infraestructura.</div></div></div>
+      <div class="pillar-role"><span class="role-badge">QA</span><div class="role-body"><div class="role-name">QA / Validador</div><div class="role-desc">Valida salidas de agentes, tests end-to-end, aceptación del cliente.</div></div></div>
+    </div>
+
+    <div class="pillar agents">
+      <div class="pillar-head">
+        <div class="pillar-icon">AI</div>
+        <div><div class="pillar-title">Agentes IA</div><div class="pillar-sub">7 AGENTES · EJECUCIÓN · CÓDIGO</div></div>
+      </div>
+      <div class="pillar-role"><span class="role-badge">A1</span><div class="role-body"><div class="role-name">Arquitecto NestJS</div><div class="role-desc">Genera módulos, servicios, controladores, DTOs para bodega, auth, ventas.</div></div></div>
+      <div class="pillar-role"><span class="role-badge">A2</span><div class="role-body"><div class="role-name">Ingeniero Spring Boot</div><div class="role-desc">Genera dominio de producción, recetas, cálculo de costos con JPA.</div></div></div>
+      <div class="pillar-role"><span class="role-badge">A3</span><div class="role-body"><div class="role-name">UI Next.js</div><div class="role-desc">Genera páginas, componentes y consumo de API del portal público.</div></div></div>
+      <div class="pillar-role"><span class="role-badge">A4</span><div class="role-body"><div class="role-name">UI Angular</div><div class="role-desc">Genera módulos, forms reactivos y pantallas del backoffice.</div></div></div>
+      <div class="pillar-role"><span class="role-badge">A5</span><div class="role-body"><div class="role-name">ETL & Migración</div><div class="role-desc">Mapea Excel a schema, genera scripts de migración con validación.</div></div></div>
+      <div class="pillar-role"><span class="role-badge">A6</span><div class="role-body"><div class="role-name">QA & Tests</div><div class="role-desc">Genera unit, integración y E2E a partir de contratos OpenAPI.</div></div></div>
+      <div class="pillar-role"><span class="role-badge">A7</span><div class="role-body"><div class="role-name">DevOps & Infra</div><div class="role-desc">Genera Helm charts, manifiestos K8s, pipelines de CI/CD, Terraform.</div></div></div>
+    </div>
+  </div>
+
+  <section class="flow-section">
+    <h2 class="section-heading">Flujo de una tarea típica</h2>
+    <div class="flow-steps">
+      <div class="flow-step">
+        <div class="flow-num">01</div>
+        <div class="flow-actor h">HUMANO</div>
+        <div class="flow-title">Define spec</div>
+        <div class="flow-desc">PO/TL escribe el ticket con criterios de aceptación, contrato de API y casos de prueba.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">02</div>
+        <div class="flow-actor a">AGENTE</div>
+        <div class="flow-title">Genera código</div>
+        <div class="flow-desc">El agente produce implementación, tests y documentación en una rama feature.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">03</div>
+        <div class="flow-actor a">AGENTE</div>
+        <div class="flow-title">Auto-validación</div>
+        <div class="flow-desc">Linter, tests, type-check, contracts. Si falla, el agente itera hasta aprobar o pide ayuda.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">04</div>
+        <div class="flow-actor h">HUMANO</div>
+        <div class="flow-title">Code review</div>
+        <div class="flow-desc">Supervisor revisa diseño, invariantes de dominio, seguridad. Aprueba o pide cambios.</div>
+      </div>
+      <div class="flow-step">
+        <div class="flow-num">05</div>
+        <div class="flow-actor h">HUMANO</div>
+        <div class="flow-title">Merge a main</div>
+        <div class="flow-desc">QA valida contra Excel real. Deploy automático a staging. Demo al cliente.</div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <h2 class="section-heading">Capacidad del modelo</h2>
+    <div class="stat-grid">
+      <div class="stat-card"><div class="stat-big" style="color:var(--ai)">3–5×</div><div class="stat-small">Aceleración estimada vs equipo 100% humano en boilerplate, CRUD, tests</div></div>
+      <div class="stat-card"><div class="stat-big" style="color:var(--human)">100%</div><div class="stat-small">Decisiones de arquitectura y reglas de negocio siguen siendo humanas</div></div>
+      <div class="stat-card"><div class="stat-big" style="color:var(--warn)">0</div><div class="stat-small">PRs mergeados sin revisión humana. Regla inviolable.</div></div>
+      <div class="stat-card"><div class="stat-big" style="color:var(--info)">24/7</div><div class="stat-small">Agentes pueden generar durante la noche; humanos revisan de día</div></div>
+    </div>
+  </section>
+</div>
+
+<!-- ═════════════ VIEW: AGENTES ═════════════ -->
+<div class="view" id="v-agentes">
+  <h1 class="view-title">Catálogo de agentes IA</h1>
+  <p class="view-sub">Cada agente tiene un dominio acotado, un contrato explícito de lo que puede y no puede hacer, y un supervisor humano responsable. Los contratos se versionan en el repo junto al código.</p>
+
+  <div class="agents-grid" id="agents-grid"></div>
+</div>
+
+<!-- ═════════════ VIEW: BACKLOG ═════════════ -->
+<div class="view" id="v-backlog">
+  <h1 class="view-title">Backlog agrupado por agente</h1>
+  <p class="view-sub">Cada tarea incluye el agente responsable, el supervisor humano, el módulo de arquitectura al que pertenece y el sprint. Haz clic en el estado para cambiarlo.</p>
+
+  <div class="backlog-toolbar">
+    <span class="tb-label">Filtrar</span>
+    <button class="chip active" data-filter="all">Todo</button>
+    <button class="chip" data-filter="s-todo">Por empezar</button>
+    <button class="chip" data-filter="s-progress">En progreso</button>
+    <button class="chip" data-filter="s-review">En revisión</button>
+    <button class="chip" data-filter="s-blocked">Bloqueadas</button>
+    <button class="chip" data-filter="pc">Críticas</button>
+    <span class="tb-label" style="margin-left:10px">Sprint</span>
+    <button class="chip" data-filter="sp0">Sem 1</button>
+    <button class="chip" data-filter="sp1">Sprint 1</button>
+    <button class="chip" data-filter="sp2">Sprint 2</button>
+    <button class="chip" data-filter="sp3">Sprint 3</button>
+    <div style="margin-left:auto">
+      <button class="chip" onclick="exportCSV()" style="background:rgba(0,212,170,.08)">Exportar CSV</button>
+    </div>
+  </div>
+
+  <div id="backlog-root"></div>
+</div>
+
+<!-- ═════════════ VIEW: CEREMONIAS ═════════════ -->
+<div class="view" id="v-ceremonias">
+  <h1 class="view-title">Ceremonias y rituales</h1>
+  <p class="cer-intro">Mantenemos el marco ágil estándar hacia el cliente (<strong>kickoff, sprint planning, daily, review, retro</strong>) intacto. Adicionalmente añadimos ceremonias específicas del modelo híbrido que el cliente no ve pero que aseguran calidad: <strong>revisión de prompts, auditoría de código generado, curación de contexto de agentes</strong>.</p>
+
+  <div class="cer-category">
+    <div class="cer-cat-head">Ceremonias cliente</div>
+    <div class="cer-grid">
+
+      <div class="cer-card client">
+        <div class="cer-top"><div><div class="cer-name">Kickoff del proyecto</div><div class="cer-dur">Día 1 · 4h</div></div><span class="cer-cadence">Única</span></div>
+        <div class="cer-desc">Alineación inicial con cliente. Validación del alcance del MVP, glosario del negocio, acceso a los Excel fuente.</div>
+        <div class="cer-details">
+          <div class="cer-det-row"><span class="cer-det-label">Asisten</span><span class="cer-det-val">Cliente + equipo humano completo</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Entrega</span><span class="cer-det-val">Documento de alcance firmado, glosario, los 10 flujos críticos</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Facilita</span><span class="cer-det-val">PO / Analista</span></div>
+        </div>
+      </div>
+
+      <div class="cer-card client">
+        <div class="cer-top"><div><div class="cer-name">Sprint planning</div><div class="cer-dur">Lunes · 2h</div></div><span class="cer-cadence">Cada 2 sem</span></div>
+        <div class="cer-desc">Revisión de backlog, priorización con cliente, compromiso del sprint. El cliente valida qué se va a trabajar.</div>
+        <div class="cer-details">
+          <div class="cer-det-row"><span class="cer-det-label">Asisten</span><span class="cer-det-val">Cliente (1–2 personas) + PO + TL</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Entrega</span><span class="cer-det-val">Sprint goal + tickets comprometidos con criterios de aceptación</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Facilita</span><span class="cer-det-val">PO</span></div>
+        </div>
+      </div>
+
+      <div class="cer-card client">
+        <div class="cer-top"><div><div class="cer-name">Sprint review / Demo</div><div class="cer-dur">Viernes · 1h</div></div><span class="cer-cadence">Cada 2 sem</span></div>
+        <div class="cer-desc">Demostración funcional al cliente en staging. Feedback directo. Aceptación o rechazo de tickets terminados.</div>
+        <div class="cer-details">
+          <div class="cer-det-row"><span class="cer-det-label">Asisten</span><span class="cer-det-val">Cliente + stakeholders + equipo humano</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Entrega</span><span class="cer-det-val">Acta de aceptación de tickets + nuevo backlog priorizado</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Facilita</span><span class="cer-det-val">PO + supervisores</span></div>
+        </div>
+      </div>
+
+      <div class="cer-card client">
+        <div class="cer-top"><div><div class="cer-name">Comité de gobierno</div><div class="cer-dur">Mensual · 1h</div></div><span class="cer-cadence">Mensual</span></div>
+        <div class="cer-desc">Revisión ejecutiva con dirección del cliente: avance vs plan, riesgos, cambios de alcance, presupuesto.</div>
+        <div class="cer-details">
+          <div class="cer-det-row"><span class="cer-det-label">Asisten</span><span class="cer-det-val">Dirección cliente + TL + PO</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Entrega</span><span class="cer-det-val">Reporte ejecutivo, decisiones de scope, firma de entregables</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Facilita</span><span class="cer-det-val">TL</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="cer-category">
+    <div class="cer-cat-head">Ceremonias del equipo humano</div>
+    <div class="cer-grid">
+
+      <div class="cer-card internal">
+        <div class="cer-top"><div><div class="cer-name">Daily standup</div><div class="cer-dur">Lun–Vie · 15min</div></div><span class="cer-cadence">Diaria</span></div>
+        <div class="cer-desc">Sincronización rápida. Qué terminó cada agente, qué necesita revisión, qué está bloqueado, qué prompts están fallando.</div>
+        <div class="cer-details">
+          <div class="cer-det-row"><span class="cer-det-label">Asisten</span><span class="cer-det-val">Solo equipo humano (7 personas)</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Entrega</span><span class="cer-det-val">Board actualizado, desbloqueos identificados</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Facilita</span><span class="cer-det-val">Rotativo</span></div>
+        </div>
+      </div>
+
+      <div class="cer-card internal">
+        <div class="cer-top"><div><div class="cer-name">Retrospectiva</div><div class="cer-dur">Viernes · 1h</div></div><span class="cer-cadence">Cada 2 sem</span></div>
+        <div class="cer-desc">Qué funcionó, qué no, qué cambiamos. Incluye métricas de agentes: tasa de aceptación de PRs, tiempo de revisión, iteraciones promedio.</div>
+        <div class="cer-details">
+          <div class="cer-det-row"><span class="cer-det-label">Asisten</span><span class="cer-det-val">Equipo humano completo</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Entrega</span><span class="cer-det-val">Acciones concretas, ajustes a prompts y procesos</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Facilita</span><span class="cer-det-val">TL o QA</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="cer-category">
+    <div class="cer-cat-head">Ceremonias específicas del modelo híbrido</div>
+    <div class="cer-grid">
+
+      <div class="cer-card internal">
+        <div class="cer-top"><div><div class="cer-name">Prompt review</div><div class="cer-dur">Martes · 45min</div></div><span class="cer-cadence">Semanal</span></div>
+        <div class="cer-desc">Revisión colectiva de los prompts/contratos de los agentes que fallaron más en la semana. Refinamiento colaborativo. Versionado en el repo.</div>
+        <div class="cer-details">
+          <div class="cer-det-row"><span class="cer-det-label">Asisten</span><span class="cer-det-val">TL + supervisores + QA</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Entrega</span><span class="cer-det-val">Nuevas versiones de prompts commiteadas, métricas actualizadas</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Facilita</span><span class="cer-det-val">TL</span></div>
+        </div>
+      </div>
+
+      <div class="cer-card internal">
+        <div class="cer-top"><div><div class="cer-name">Auditoría de código</div><div class="cer-dur">Jueves · 1h</div></div><span class="cer-cadence">Semanal</span></div>
+        <div class="cer-desc">Muestra aleatoria de PRs del agente IA ya mergeados: ¿el código cumple las invariantes del dominio? ¿Hay deuda técnica silenciosa? ¿Los tests cubren casos reales o solo los obvios?</div>
+        <div class="cer-details">
+          <div class="cer-det-row"><span class="cer-det-label">Asisten</span><span class="cer-det-val">Supervisores + QA</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Entrega</span><span class="cer-det-val">Hallazgos de auditoría, tickets de refactor, ajustes a pipeline de revisión</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Facilita</span><span class="cer-det-val">QA</span></div>
+        </div>
+      </div>
+
+      <div class="cer-card internal">
+        <div class="cer-top"><div><div class="cer-name">Curación de contexto</div><div class="cer-dur">Lunes · 30min</div></div><span class="cer-cadence">Semanal</span></div>
+        <div class="cer-desc">Actualización de la memoria/contexto que los agentes cargan: glosario de negocio, ADRs recientes, convenciones de código, módulos existentes. Evita alucinaciones por contexto desactualizado.</div>
+        <div class="cer-details">
+          <div class="cer-det-row"><span class="cer-det-label">Asisten</span><span class="cer-det-val">TL + supervisores</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Entrega</span><span class="cer-det-val">Contexto actualizado commiteado, changelog de contexto</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Facilita</span><span class="cer-det-val">TL</span></div>
+        </div>
+      </div>
+
+      <div class="cer-card internal">
+        <div class="cer-top"><div><div class="cer-name">Sync supervisor-agente</div><div class="cer-dur">Diario · 20min</div></div><span class="cer-cadence">Diaria</span></div>
+        <div class="cer-desc">Cada supervisor dedica 20 minutos al inicio del día a revisar las salidas nocturnas de sus agentes, aprobar, pedir cambios o encolar nuevos prompts.</div>
+        <div class="cer-details">
+          <div class="cer-det-row"><span class="cer-det-label">Asisten</span><span class="cer-det-val">Cada supervisor con sus agentes asignados</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Entrega</span><span class="cer-det-val">PRs aprobados o reencolados, bloqueos reportados en el daily</span></div>
+          <div class="cer-det-row"><span class="cer-det-label">Facilita</span><span class="cer-det-val">Supervisor</span></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ═════════════ VIEW: PIPELINE ═════════════ -->
+<div class="view" id="v-pipeline">
+  <h1 class="view-title">Pipeline de calidad</h1>
+  <p class="view-sub">Ningún código generado por IA llega a producción sin pasar este pipeline. Está diseñado para que las alucinaciones, invariantes rotas o vulnerabilidades sean atrapadas antes de afectar al cliente.</p>
+
+  <div class="pipe-hero">
+    <div class="pipe-steps">
+      <div class="pipe-step">
+        <div class="pipe-actor h">HUMANO</div>
+        <div class="pipe-title">Spec & contrato</div>
+        <div class="pipe-desc">Ticket con criterios verificables, OpenAPI, casos de test obligatorios.</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-actor a">AGENTE</div>
+        <div class="pipe-title">Generación</div>
+        <div class="pipe-desc">Código + tests + docs en rama feature, commits atómicos.</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-actor auto">CI</div>
+        <div class="pipe-title">Auto-checks</div>
+        <div class="pipe-desc">Lint, type-check, tests, contract tests, SAST, secret scan.</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-actor h">HUMANO</div>
+        <div class="pipe-title">Code review</div>
+        <div class="pipe-desc">Supervisor revisa diseño, invariantes, seguridad. Firma obligatoria.</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-actor auto">CI</div>
+        <div class="pipe-title">E2E + staging</div>
+        <div class="pipe-desc">Deploy automático a staging, suite E2E, validación contra Excel.</div>
+      </div>
+      <div class="pipe-step">
+        <div class="pipe-actor h">HUMANO</div>
+        <div class="pipe-title">QA / Cliente</div>
+        <div class="pipe-desc">QA valida reglas de negocio; cliente aprueba en demo o staging.</div>
+      </div>
+    </div>
+  </div>
+
+  <h2 class="section-heading" style="margin-top:24px">Guardrails obligatorios</h2>
+  <div class="guardrails">
+    <div class="guard-card">
+      <div class="guard-title"><span class="guard-icon">1</span>Contratos versionados</div>
+      <div class="guard-desc">Cada agente tiene un contrato en el repo (<span style="font-family:var(--mono);font-size:11px">agents/*.md</span>) que define alcance, entradas, salidas y lo que no puede tocar.</div>
+    </div>
+    <div class="guard-card">
+      <div class="guard-title"><span class="guard-icon">2</span>Branch protection</div>
+      <div class="guard-desc">main y staging protegidas. Se requiere al menos 1 aprobación humana + CI verde + sin conflictos antes del merge.</div>
+    </div>
+    <div class="guard-card">
+      <div class="guard-title"><span class="guard-icon">3</span>Tests de invariantes</div>
+      <div class="guard-desc">Cada módulo tiene tests que verifican reglas de negocio críticas (ej: stock nunca negativo, costo de OP coincide con Excel).</div>
+    </div>
+    <div class="guard-card">
+      <div class="guard-title"><span class="guard-icon">4</span>Validación contra Excel</div>
+      <div class="guard-desc">Fixture de 50+ casos reales extraídos de los Excel del cliente. El CI falla si el resultado no coincide en &gt;99%.</div>
+    </div>
+    <div class="guard-card">
+      <div class="guard-title"><span class="guard-icon">5</span>SAST + secret scan</div>
+      <div class="guard-desc">Análisis estático automático (Semgrep/SonarQube) y detección de secretos (gitleaks) en cada PR.</div>
+    </div>
+    <div class="guard-card">
+      <div class="guard-title"><span class="guard-icon">6</span>Observabilidad desde día 1</div>
+      <div class="guard-desc">Sentry + Prometheus + logs estructurados. Cualquier error en staging se detecta antes de llegar a cliente.</div>
+    </div>
+    <div class="guard-card">
+      <div class="guard-title"><span class="guard-icon">7</span>Auditoría aleatoria</div>
+      <div class="guard-desc">Cada semana QA selecciona 5% de PRs mergeados para auditoría profunda. Detecta deuda técnica silenciosa.</div>
+    </div>
+    <div class="guard-card">
+      <div class="guard-title"><span class="guard-icon">8</span>Rollback automático</div>
+      <div class="guard-desc">ArgoCD configurado con rollback automático si métricas de error exceden umbral en 5 min post-deploy.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+//   DATA: AGENTES
+// ═══════════════════════════════════════════
+const AGENTS = [
+  {
+    id:'A1', code:'A1', color:'teal', name:'Arquitecto NestJS',
+    tag:'BACKEND · NODE.JS',
+    mission:'Genera microservicios NestJS para dominios de bodega, auth, ventas, notificaciones y usuarios. Produce módulos completos con controllers, services, DTOs, guards y migraciones Prisma.',
+    capabilities:['NestJS 10','Prisma ORM','JWT + guards','OpenAPI','Jest','Swagger'],
+    supervisor:{code:'S1',name:'Supervisor backend core'},
+    contract:`# Contrato del agente A1
+
+## PUEDE
+- Crear módulos NestJS siguiendo la estructura del repo
+- Generar DTOs con class-validator
+- Escribir migraciones Prisma y seeds
+- Generar OpenAPI/Swagger desde DTOs
+- Escribir unit tests con Jest
+
+## NO PUEDE
+- Modificar el schema de producción sin ADR
+- Tocar módulos de producción (territorio de A2)
+- Hacer merge a main directamente
+- Modificar el archivo .env
+
+## INVARIANTES
+- Stock nunca negativo
+- Toda mutación de bodega genera evento
+- RBAC en todos los endpoints`,
+    metrics:{pr:14, accept:'92%', iter:'1.8'}
+  },
+  {
+    id:'A2', code:'A2', color:'coral', name:'Ingeniero Spring Boot',
+    tag:'BACKEND · JAVA',
+    mission:'Genera el dominio de producción en Spring Boot: productos con recetas, variantes con campos dinámicos JSONB, órdenes de producción, cálculo de costos por minuto de máquina y horas hombre.',
+    capabilities:['Spring Boot 3','JPA + Hibernate','Flyway','JUnit 5','Testcontainers','MapStruct'],
+    supervisor:{code:'S2',name:'Supervisor dominio producción'},
+    contract:`# Contrato del agente A2
+
+## PUEDE
+- Crear entidades JPA del dominio producción
+- Implementar cálculo de costos (fórmulas documentadas)
+- Generar migraciones Flyway
+- Escribir tests con Testcontainers
+
+## NO PUEDE
+- Tocar el dominio de bodega directamente (usar eventos)
+- Modificar tarifas sin ADR
+- Saltarse validación contra Excel del cliente
+
+## INVARIANTES
+- Costo calculado coincide con Excel en >99%
+- Tarifas tienen vigencia temporal
+- Cambios de estado de OP generan eventos`,
+    metrics:{pr:9, accept:'88%', iter:'2.3'}
+  },
+  {
+    id:'A3', code:'A3', color:'blue', name:'UI Next.js',
+    tag:'FRONTEND · REACT',
+    mission:'Genera el portal público en Next.js 14 con App Router: páginas de cotizaciones para clientes, dashboards comerciales, consumo de APIs del gateway.',
+    capabilities:['Next.js 14','React Server Components','Tailwind','TanStack Query','Zod','Playwright'],
+    supervisor:{code:'S3',name:'Supervisor frontend'},
+    contract:`# Contrato del agente A3
+
+## PUEDE
+- Crear páginas y layouts en Next.js App Router
+- Generar componentes con Tailwind
+- Integrar con APIs usando TanStack Query
+- Escribir E2E con Playwright
+
+## NO PUEDE
+- Crear estado global sin ADR
+- Hacer llamadas directas a la BD
+- Usar librerías fuera del allowlist del repo
+
+## INVARIANTES
+- Componentes accesibles (WCAG AA)
+- Loading y error states obligatorios
+- Server components por defecto`,
+    metrics:{pr:11, accept:'90%', iter:'2.0'}
+  },
+  {
+    id:'A4', code:'A4', color:'purple', name:'UI Angular',
+    tag:'FRONTEND · ANGULAR',
+    mission:'Genera el backoffice operativo en Angular 17: módulos de bodega, producción, formularios reactivos para órdenes, pantallas densas con ag-grid para datos operativos.',
+    capabilities:['Angular 17','Standalone','Reactive Forms','NgRx Signals','ag-grid','Cypress'],
+    supervisor:{code:'S3',name:'Supervisor frontend'},
+    contract:`# Contrato del agente A4
+
+## PUEDE
+- Generar standalone components
+- Crear formularios reactivos con validación
+- Integrar ag-grid para listados grandes
+- Escribir tests con Cypress
+
+## NO PUEDE
+- Mezclar NgModule con standalone
+- Usar RxJS fuera de HttpClient interceptors
+- Tocar estado global sin NgRx Signals
+
+## INVARIANTES
+- Formularios con validación síncrona y async
+- Error boundaries en módulos
+- Loading skeletons en todas las vistas`,
+    metrics:{pr:13, accept:'89%', iter:'2.1'}
+  },
+  {
+    id:'A5', code:'A5', color:'amber', name:'ETL & Migración',
+    tag:'DATA · PYTHON',
+    mission:'Mapea los Excel existentes del cliente a schema PostgreSQL. Produce scripts Python con pandas, validación cruzada, detección de inconsistencias y reporte de migración.',
+    capabilities:['Python 3.12','pandas','SQLAlchemy','openpyxl','Great Expectations','Airflow'],
+    supervisor:{code:'PO',name:'Product Owner / Analista'},
+    contract:`# Contrato del agente A5
+
+## PUEDE
+- Leer y parsear Excel con pandas
+- Generar scripts de migración SQL
+- Crear validators con Great Expectations
+- Producir reportes de calidad de datos
+
+## NO PUEDE
+- Modificar el Excel fuente
+- Ejecutar scripts destructivos sin aprobación humana
+- Asumir esquema de datos sin validar con PO
+
+## INVARIANTES
+- Cada migración es idempotente
+- Toda fila rechazada se reporta con motivo
+- Backup antes de cualquier escritura masiva`,
+    metrics:{pr:7, accept:'85%', iter:'2.7'}
+  },
+  {
+    id:'A6', code:'A6', color:'pink', name:'QA & Tests',
+    tag:'CALIDAD · TESTING',
+    mission:'Genera suites de tests a partir de contratos OpenAPI y casos de aceptación: unit, integración con Testcontainers, E2E con Playwright/Cypress, tests de contrato y carga con k6.',
+    capabilities:['Jest','JUnit','Playwright','Cypress','k6','Pact','Testcontainers'],
+    supervisor:{code:'QA',name:'QA / Validador'},
+    contract:`# Contrato del agente A6
+
+## PUEDE
+- Generar tests desde contratos OpenAPI
+- Crear fixtures basados en Excel real
+- Escribir tests de carga con k6
+- Generar tests de contrato con Pact
+
+## NO PUEDE
+- Deshabilitar tests sin aprobación
+- Generar mocks que no validen schemas
+- Reducir cobertura sin ADR
+
+## INVARIANTES
+- Cobertura mínima 80% en dominio
+- Todo test tiene assertion explícito
+- Fixtures versionadas con el código`,
+    metrics:{pr:16, accept:'94%', iter:'1.5'}
+  },
+  {
+    id:'A7', code:'A7', color:'green', name:'DevOps & Infra',
+    tag:'INFRA · IaC',
+    mission:'Genera manifiestos Kubernetes, Helm charts, pipelines de GitHub Actions, Terraform para AWS/GCP, configuración de observabilidad (Prometheus/Grafana/Loki) y políticas de seguridad.',
+    capabilities:['Kubernetes','Helm','Terraform','GitHub Actions','ArgoCD','Prometheus','Grafana'],
+    supervisor:{code:'DO',name:'DevOps / Plataforma'},
+    contract:`# Contrato del agente A7
+
+## PUEDE
+- Generar Helm charts y manifiestos K8s
+- Crear workflows de GitHub Actions
+- Escribir módulos Terraform
+- Configurar observabilidad
+
+## NO PUEDE
+- Aplicar cambios directos en prod
+- Modificar secretos en claro
+- Cambiar políticas de red sin ADR
+
+## INVARIANTES
+- Todo recurso con limits y requests
+- Secretos en Vault o K8s secrets
+- Health/liveness en todos los servicios`,
+    metrics:{pr:10, accept:'91%', iter:'1.9'}
+  }
+];
+
+// ═══════════════════════════════════════════
+//   DATA: TAREAS
+// ═══════════════════════════════════════════
+const TASKS = [
+  // ───── SEMANA 1 (sprint 0) ─────
+  {id:'T-001', sp:0, st:'s-todo', pri:'pc', agent:'A7', sup:'DO', arch:'infra/repo', est:3, title:'Crear organización GitHub, monorepo, branch protection, PR templates', tags:['github','setup']},
+  {id:'T-002', sp:0, st:'s-todo', pri:'pc', agent:'A7', sup:'DO', arch:'infra/local', est:4, title:'docker-compose.yml con PostgreSQL 15, Redis, pgAdmin, RabbitMQ', tags:['docker']},
+  {id:'T-003', sp:0, st:'s-todo', pri:'pc', agent:'A7', sup:'DO', arch:'infra/ci', est:5, title:'Pipelines CI: lint, tests, build, deploy a staging en GitHub Actions', tags:['ci/cd']},
+  {id:'T-004', sp:0, st:'s-todo', pri:'pc', agent:'A1', sup:'S1', arch:'services/core', est:3, title:'Proyecto NestJS base con Prisma, estructura de módulos, health endpoint', tags:['nestjs']},
+  {id:'T-005', sp:0, st:'s-todo', pri:'pc', agent:'A2', sup:'S2', arch:'services/produccion', est:3, title:'Proyecto Spring Boot base con JPA, Flyway, actuator', tags:['spring']},
+  {id:'T-006', sp:0, st:'s-todo', pri:'pc', agent:'A3', sup:'S3', arch:'web/public', est:2, title:'Next.js 14 con App Router, Tailwind, design tokens base', tags:['nextjs']},
+  {id:'T-007', sp:0, st:'s-todo', pri:'pc', agent:'A4', sup:'S3', arch:'web/backoffice', est:2, title:'Angular 17 standalone con ag-grid, NgRx Signals, tokens compartidos', tags:['angular']},
+  {id:'T-008', sp:0, st:'s-todo', pri:'ph', agent:'—', sup:'TL', arch:'docs/arch', est:4, title:'Schema PostgreSQL v1: entidades core con JSONB para variantes', tags:['schema','humano']},
+  {id:'T-009', sp:0, st:'s-todo', pri:'ph', agent:'—', sup:'PO', arch:'docs/business', est:2, title:'Glosario de negocio firmado con cliente (entidades, flujos)', tags:['docs','humano']},
+  {id:'T-010', sp:0, st:'s-todo', pri:'ph', agent:'A7', sup:'DO', arch:'infra/auth', est:3, title:'Keycloak en docker-compose: realm, clientes OAuth2, roles', tags:['auth','keycloak']},
+  {id:'T-011', sp:0, st:'s-todo', pri:'ph', agent:'A5', sup:'PO', arch:'etl/analysis', est:3, title:'Inventario de Excel del cliente: qué tablas, columnas, fórmulas existen', tags:['etl','analysis']},
+  {id:'T-012', sp:0, st:'s-todo', pri:'pm', agent:'—', sup:'TL', arch:'docs/agents', est:3, title:'Redactar los 7 contratos de agentes IA y commitearlos al repo', tags:['docs','humano']},
+
+  // ───── SPRINT 1: Core + auth + bodega ─────
+  {id:'T-013', sp:1, st:'s-todo', pri:'pc', agent:'A1', sup:'S1', arch:'services/core/auth', est:5, title:'Módulo de autenticación NestJS: login JWT con Keycloak, refresh tokens', tags:['auth']},
+  {id:'T-014', sp:1, st:'s-todo', pri:'pc', agent:'A1', sup:'S1', arch:'services/core/auth', est:3, title:'Guards de roles, interceptor de RBAC, decoradores de permisos', tags:['auth','rbac']},
+  {id:'T-015', sp:1, st:'s-todo', pri:'pc', agent:'A3', sup:'S3', arch:'web/public/auth', est:4, title:'Login y sesión en Next.js: flujo OAuth2, cookie segura, redirect por rol', tags:['frontend','auth']},
+  {id:'T-016', sp:1, st:'s-todo', pri:'pc', agent:'A1', sup:'S1', arch:'services/bodega', est:5, title:'CRUD de categorías e insumos con validaciones y unit tests', tags:['bodega']},
+  {id:'T-017', sp:1, st:'s-todo', pri:'pc', agent:'A1', sup:'S1', arch:'services/bodega', est:6, title:'Movimientos de bodega: entrada, salida, ajuste con transacciones atómicas', tags:['bodega']},
+  {id:'T-018', sp:1, st:'s-todo', pri:'pc', agent:'A4', sup:'S3', arch:'web/backoffice/bodega', est:6, title:'Angular: listado de insumos con ag-grid, filtros, detalle, movimientos', tags:['frontend']},
+  {id:'T-019', sp:1, st:'s-todo', pri:'ph', agent:'A4', sup:'S3', arch:'web/backoffice/dashboard', est:4, title:'Dashboard stock crítico: insumos bajo mínimo con alertas visuales', tags:['frontend','dashboard']},
+  {id:'T-020', sp:1, st:'s-todo', pri:'ph', agent:'A7', sup:'DO', arch:'infra/k8s/staging', est:4, title:'Staging en K8s: namespaces, secrets, ingress, cert SSL', tags:['k8s']},
+  {id:'T-021', sp:1, st:'s-todo', pri:'ph', agent:'A5', sup:'PO', arch:'etl/bodega', est:5, title:'ETL piloto: migrar tabla de insumos del Excel principal con validación', tags:['etl']},
+  {id:'T-022', sp:1, st:'s-todo', pri:'ph', agent:'—', sup:'TL', arch:'docs/api', est:3, title:'Contrato OpenAPI de bodega: swagger.yaml revisado y aprobado', tags:['api','humano']},
+  {id:'T-023', sp:1, st:'s-todo', pri:'ph', agent:'A6', sup:'QA', arch:'tests/bodega', est:4, title:'Tests E2E del flujo completo de bodega en Playwright', tags:['tests','e2e']},
+  {id:'T-024', sp:1, st:'s-todo', pri:'pm', agent:'A1', sup:'S1', arch:'services/core/users', est:3, title:'CRUD de usuarios: asignación de roles, cambio de contraseña', tags:['users']},
+  {id:'T-025', sp:1, st:'s-todo', pri:'pm', agent:'A7', sup:'DO', arch:'infra/observability', est:3, title:'Prometheus + Grafana en staging con dashboards base de API y BD', tags:['observabilidad']},
+
+  // ───── SPRINT 2: Producción + recetas + costos ─────
+  {id:'T-026', sp:2, st:'s-todo', pri:'pc', agent:'A2', sup:'S2', arch:'services/produccion/producto', est:7, title:'Entidad Producto con Receta: cabecera + líneas de insumos + cantidades', tags:['receta']},
+  {id:'T-027', sp:2, st:'s-todo', pri:'pc', agent:'A2', sup:'S2', arch:'services/produccion/variante', est:5, title:'Variantes de producto con campos dinámicos JSONB por categoría', tags:['variantes']},
+  {id:'T-028', sp:2, st:'s-todo', pri:'pc', agent:'A2', sup:'S2', arch:'services/produccion/orden', est:8, title:'Orden de producción: creación, fases, asignación de máquina/personal', tags:['op']},
+  {id:'T-029', sp:2, st:'s-todo', pri:'pc', agent:'A2', sup:'S2', arch:'services/produccion/costo', est:7, title:'Motor de cálculo de costo: tarifa/min + h/h + insumos consumidos', tags:['costos']},
+  {id:'T-030', sp:2, st:'s-todo', pri:'pc', agent:'A2', sup:'S2', arch:'services/produccion/tarifas', est:4, title:'Tabla de tarifas con vigencia temporal por máquina y tipo de trabajador', tags:['tarifas']},
+  {id:'T-031', sp:2, st:'s-todo', pri:'pc', agent:'A4', sup:'S3', arch:'web/backoffice/produccion', est:7, title:'Formulario de orden de producción con receta y asignación de recursos', tags:['frontend','op']},
+  {id:'T-032', sp:2, st:'s-todo', pri:'pc', agent:'A4', sup:'S3', arch:'web/backoffice/produccion', est:5, title:'Listado de órdenes con estado, filtros por fecha/estado/producto', tags:['frontend']},
+  {id:'T-033', sp:2, st:'s-todo', pri:'ph', agent:'A5', sup:'PO', arch:'etl/produccion', est:6, title:'ETL de productos y recetas: migrar Excel con validación cruzada', tags:['etl']},
+  {id:'T-034', sp:2, st:'s-todo', pri:'pc', agent:'A6', sup:'QA', arch:'tests/produccion', est:5, title:'Validación del motor de costos contra 50 casos reales del Excel', tags:['tests','validacion']},
+  {id:'T-035', sp:2, st:'s-todo', pri:'ph', agent:'A7', sup:'DO', arch:'infra/rabbitmq', est:3, title:'RabbitMQ en K8s: colas para eventos de producción y notificaciones', tags:['rabbitmq']},
+  {id:'T-036', sp:2, st:'s-todo', pri:'pm', agent:'A1', sup:'S1', arch:'services/notificaciones', est:4, title:'Servicio de notificaciones: alertas cuando una OP cambia de estado', tags:['notificaciones']},
+  {id:'T-037', sp:2, st:'s-todo', pri:'pm', agent:'—', sup:'TL', arch:'docs/adr', est:3, title:'ADR: decisión sobre multi-tenancy por schema documentada', tags:['docs','humano']},
+
+  // ───── SPRINT 3: Ventas + MVP cerrado ─────
+  {id:'T-038', sp:3, st:'s-todo', pri:'pc', agent:'A1', sup:'S1', arch:'services/ventas/clientes', est:5, title:'Módulo de clientes: CRUD, condiciones comerciales, historial', tags:['clientes']},
+  {id:'T-039', sp:3, st:'s-todo', pri:'pc', agent:'A1', sup:'S1', arch:'services/ventas/cotizaciones', est:6, title:'Cotizaciones: líneas, precios, vigencia, PDF exportable', tags:['cotizaciones']},
+  {id:'T-040', sp:3, st:'s-todo', pri:'pc', agent:'A1', sup:'S1', arch:'services/ventas/ordenes', est:6, title:'Orden de venta: conversión desde cotización, estados, confirmación dispara OP', tags:['ov']},
+  {id:'T-041', sp:3, st:'s-todo', pri:'pc', agent:'A2', sup:'S2', arch:'services/ventas/cobro', est:5, title:'Tipos de cobro configurables: por minuto, por unidad, mixto', tags:['cobros']},
+  {id:'T-042', sp:3, st:'s-todo', pri:'pc', agent:'A3', sup:'S3', arch:'web/public/ventas', est:6, title:'Portal Next.js: cotizaciones y órdenes para equipo comercial', tags:['frontend']},
+  {id:'T-043', sp:3, st:'s-todo', pri:'pc', agent:'A3', sup:'S3', arch:'web/public/dashboard', est:7, title:'Dashboard de KPIs: producción del mes, ventas, stock crítico, top 5', tags:['dashboard']},
+  {id:'T-044', sp:3, st:'s-todo', pri:'ph', agent:'A5', sup:'PO', arch:'etl/clientes', est:5, title:'ETL clientes frecuentes: migrar 50 clientes activos con historial', tags:['etl']},
+  {id:'T-045', sp:3, st:'s-todo', pri:'ph', agent:'A4', sup:'S3', arch:'web/backoffice/clientes', est:4, title:'Perfil de cliente frecuente con historial de compras', tags:['frontend']},
+  {id:'T-046', sp:3, st:'s-todo', pri:'ph', agent:'A7', sup:'DO', arch:'infra/backup', est:4, title:'Backup automático PostgreSQL a S3/MinIO con retención 30 días', tags:['backup']},
+  {id:'T-047', sp:3, st:'s-todo', pri:'ph', agent:'—', sup:'TL', arch:'docs/security', est:5, title:'RBAC final: matriz de permisos por módulo y rol revisada con cliente', tags:['seguridad','humano']},
+  {id:'T-048', sp:3, st:'s-todo', pri:'ph', agent:'A7', sup:'DO', arch:'infra/sentry', est:3, title:'Sentry para errores en producción con alertas a Slack', tags:['sentry']},
+  {id:'T-049', sp:3, st:'s-todo', pri:'pm', agent:'A1', sup:'S1', arch:'services/core/oracle', est:4, title:'Adaptador Oracle REST de solo lectura para datos históricos', tags:['oracle']},
+  {id:'T-050', sp:3, st:'s-todo', pri:'ph', agent:'A6', sup:'QA', arch:'tests/load', est:4, title:'Stress test con k6: 100 usuarios concurrentes en endpoints críticos', tags:['performance']},
+  {id:'T-051', sp:3, st:'s-todo', pri:'pm', agent:'A4', sup:'S3', arch:'web/backoffice/notif', est:3, title:'Centro de notificaciones: alertas de OP, stock, cotizaciones vencidas', tags:['notificaciones']},
+  {id:'T-052', sp:3, st:'s-todo', pri:'ph', agent:'A6', sup:'QA', arch:'tests/ventas', est:4, title:'Tests E2E del flujo cotización → OV → OP → entrega', tags:['e2e']},
+];
+
+// ═══════════════════════════════════════════
+//   DATA: HUMANOS (supervisores)
+// ═══════════════════════════════════════════
+const HUMANS = {
+  'TL':{name:'Tech Lead',color:'#c47de0'},
+  'PO':{name:'Product Owner',color:'#c47de0'},
+  'S1':{name:'Sup. backend',color:'#c47de0'},
+  'S2':{name:'Sup. producción',color:'#c47de0'},
+  'S3':{name:'Sup. frontend',color:'#c47de0'},
+  'DO':{name:'DevOps',color:'#c47de0'},
+  'QA':{name:'QA',color:'#c47de0'},
+};
+
+const STATUS_CYCLE = ['s-todo','s-progress','s-review','s-done','s-blocked'];
+const STATUS_LABEL = {'s-todo':'Por hacer','s-progress':'En curso','s-review':'En revisión','s-done':'Hecha','s-blocked':'Bloqueada'};
+const PRI_LABEL = {pc:'CRÍTICA',ph:'ALTA',pm:'MEDIA',pl:'BAJA'};
+const SPRINTS = [
+  {id:0,cls:'sp0',label:'Semana 1'},
+  {id:1,cls:'sp1',label:'Sprint 1'},
+  {id:2,cls:'sp2',label:'Sprint 2'},
+  {id:3,cls:'sp3',label:'Sprint 3'},
+];
+const AGENT_BY_ID = Object.fromEntries(AGENTS.map(a=>[a.id,a]));
+
+let currentFilter = 'all';
+
+// ═══════════════════════════════════════════
+//   RENDERS
+// ═══════════════════════════════════════════
+function renderAgents(){
+  const root = document.getElementById('agents-grid');
+  root.innerHTML = AGENTS.map(a => `
+    <div class="agent-card" data-color="${a.color}">
+      <div class="agent-head">
+        <div class="agent-top">
+          <div class="agent-avatar">${a.code}</div>
+          <div class="agent-id-block">
+            <div class="agent-id">AGENT · ${a.id}</div>
+            <div class="agent-name">${a.name}</div>
+            <span class="agent-tag">${a.tag}</span>
+          </div>
+        </div>
+      </div>
+      <div class="agent-mission">${a.mission}</div>
+      <div class="agent-section">
+        <div class="agent-label">Capacidades</div>
+        <div class="capabilities">${a.capabilities.map(c=>`<span class="capability">${c}</span>`).join('')}</div>
+      </div>
+      <div class="agent-section">
+        <div class="agent-label">Supervisor humano</div>
+        <div class="supervisor-row">
+          <div class="sup-avatar">${a.supervisor.code}</div>
+          <div class="sup-info">
+            <div class="sup-name">${a.supervisor.name}</div>
+            <div class="sup-role">Revisa PRs · define prompts · valida salida</div>
+          </div>
+        </div>
+      </div>
+      <div class="agent-section">
+        <div class="agent-label">Contrato</div>
+        <pre class="agent-contract">${a.contract}</pre>
+      </div>
+      <div class="agent-metrics">
+        <div class="am"><div class="am-val">${a.metrics.pr}</div><div class="am-lbl">PRs mes</div></div>
+        <div class="am"><div class="am-val">${a.metrics.accept}</div><div class="am-lbl">Aceptación</div></div>
+        <div class="am"><div class="am-val">${a.metrics.iter}</div><div class="am-lbl">Iter prom</div></div>
+      </div>
+    </div>
+  `).join('');
+}
+
+function taskMatchesFilter(t){
+  if(currentFilter==='all') return true;
+  if(['s-todo','s-progress','s-review','s-done','s-blocked'].includes(currentFilter)) return t.st===currentFilter;
+  if(['pc','ph','pm','pl'].includes(currentFilter)) return t.pri===currentFilter;
+  if(['sp0','sp1','sp2','sp3'].includes(currentFilter)) return 'sp'+t.sp===currentFilter;
+  return true;
+}
+
+function renderBacklog(){
+  const root = document.getElementById('backlog-root');
+  const byAgent = {};
+  AGENTS.forEach(a => byAgent[a.id] = []);
+  byAgent['HUMAN'] = [];
+
+  TASKS.forEach(t=>{
+    if(!taskMatchesFilter(t)) return;
+    if(t.agent==='—') byAgent['HUMAN'].push(t);
+    else if(byAgent[t.agent]) byAgent[t.agent].push(t);
+  });
+
+  let html = '';
+
+  // Grupo tareas humanas primero
+  if(byAgent['HUMAN'].length){
+    html += renderGroup({
+      id:'HUMAN',
+      code:'H',
+      color:'purple-hum',
+      name:'Tareas 100% humanas',
+      tag:'DECISIÓN · ARQUITECTURA',
+      supName:'Varios'
+    }, byAgent['HUMAN']);
+  }
+
+  AGENTS.forEach(a=>{
+    if(!byAgent[a.id].length) return;
+    html += renderGroup(a, byAgent[a.id]);
+  });
+
+  if(!html) html = '<div style="padding:60px;text-align:center;color:var(--muted)">No hay tareas que coincidan con el filtro</div>';
+  root.innerHTML = html;
+
+  // bind toggle
+  root.querySelectorAll('.ag-head').forEach(h=>{
+    h.addEventListener('click',()=>{
+      const body = h.nextElementSibling;
+      const chev = h.querySelector('.ag-chev');
+      body.classList.toggle('hidden');
+      chev.classList.toggle('open');
+    });
+  });
+
+  // bind status toggle
+  root.querySelectorAll('.status').forEach(el=>{
+    el.addEventListener('click', e=>{
+      e.stopPropagation();
+      const id = el.dataset.id;
+      const t = TASKS.find(x=>x.id===id);
+      if(!t) return;
+      const i = STATUS_CYCLE.indexOf(t.st);
+      t.st = STATUS_CYCLE[(i+1)%STATUS_CYCLE.length];
+      updateStats();
+      renderBacklog();
+    });
+  });
+}
+
+function renderGroup(agent, tasks){
+  const isHuman = agent.id==='HUMAN';
+  const totalEst = tasks.reduce((a,t)=>a+t.est,0);
+  const done = tasks.filter(t=>t.st==='s-done').length;
+
+  const bgColor = isHuman
+    ? 'background:rgba(196,125,224,.12);color:#c47de0'
+    : `background:rgba(${colorRGB(agent.color)},.12);color:${colorHex(agent.color)}`;
+
+  return `
+    <div class="agent-group">
+      <div class="ag-head">
+        <div class="ag-avatar" style="${bgColor}">${agent.code}</div>
+        <div class="ag-info">
+          <div class="ag-title">${agent.name}</div>
+          <div class="ag-sub">${agent.tag || 'HUMANO'} · Supervisor: ${isHuman ? 'Varios' : agent.supervisor.name}</div>
+        </div>
+        <div class="ag-meta">
+          <span>${tasks.length} tareas</span>
+          <span>${totalEst} pts</span>
+          <span>${done}/${tasks.length} hechas</span>
+          <span class="ag-chev">▾</span>
+        </div>
+      </div>
+      <div class="ag-body">
+        <table class="task-table">
+          <thead><tr>
+            <th style="width:60px">ID</th>
+            <th style="width:80px">Sprint</th>
+            <th>Tarea</th>
+            <th style="width:120px">Estado</th>
+            <th style="width:140px">Supervisor</th>
+            <th style="width:55px;text-align:right">Est</th>
+            <th style="width:80px">Prio</th>
+          </tr></thead>
+          <tbody>
+            ${tasks.map(t=>`
+              <tr>
+                <td><span class="task-id">${t.id}</span></td>
+                <td><span class="sprint-cell ${SPRINTS[t.sp].cls}">${SPRINTS[t.sp].label}</span></td>
+                <td>
+                  <div class="task-title">${t.title}</div>
+                  <span class="task-arch">${t.arch}</span>
+                </td>
+                <td><span class="status ${t.st}" data-id="${t.id}">${STATUS_LABEL[t.st]}</span></td>
+                <td>
+                  <div class="sup-cell">
+                    <div class="sup-avatar">${t.sup}</div>
+                    <span class="sup-cell-name">${HUMANS[t.sup]?.name || t.sup}</span>
+                  </div>
+                </td>
+                <td class="est-cell">${t.est}pt</td>
+                <td><span class="pri ${t.pri}">${PRI_LABEL[t.pri]}</span></td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `;
+}
+
+function colorRGB(c){
+  const map={teal:'0,212,170',coral:'255,112,64',blue:'91,143,255',purple:'196,125,224',amber:'240,192,64',pink:'255,107,157',green:'45,190,122'};
+  return map[c]||'150,150,160';
+}
+function colorHex(c){
+  const map={teal:'#00d4aa',coral:'#ff7040',blue:'#5b8fff',purple:'#c47de0',amber:'#f0c040',pink:'#ff6b9d',green:'#2dbe7a'};
+  return map[c]||'#9595a6';
+}
+
+function updateStats(){
+  const total = TASKS.length;
+  const done = TASKS.filter(t=>t.st==='s-done').length;
+  document.getElementById('h-tasks').textContent = total;
+  document.getElementById('h-done').textContent = Math.round(done/total*100) + '%';
+}
+
+function exportCSV(){
+  const headers = ['ID','Sprint','Estado','Prioridad','Agente','Supervisor','Módulo arquitectura','Estimación','Tarea'];
+  const rows = TASKS.map(t=>[
+    t.id,
+    SPRINTS[t.sp].label,
+    STATUS_LABEL[t.st],
+    PRI_LABEL[t.pri],
+    t.agent==='—'?'HUMANO':(AGENT_BY_ID[t.agent]?.name || t.agent),
+    HUMANS[t.sup]?.name || t.sup,
+    t.arch,
+    t.est,
+    '"'+t.title.replace(/"/g,'""')+'"'
+  ]);
+  const csv = [headers,...rows].map(r=>r.join(',')).join('\n');
+  const blob = new Blob([csv],{type:'text/csv'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href=url; a.download='backlog_erp_agentes_ia.csv'; a.click();
+}
+
+// ═══════════════════════════════════════════
+//   NAV
+// ═══════════════════════════════════════════
+document.querySelectorAll('.tab').forEach(tab=>{
+  tab.addEventListener('click',()=>{
+    const v = tab.dataset.view;
+    document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+    tab.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById('v-'+v).classList.add('active');
+  });
+});
+
+document.querySelectorAll('.backlog-toolbar .chip').forEach(chip=>{
+  chip.addEventListener('click',()=>{
+    const f = chip.dataset.filter;
+    if(!f) return;
+    currentFilter = f;
+    document.querySelectorAll('.backlog-toolbar .chip').forEach(c=>c.classList.remove('active'));
+    chip.classList.add('active');
+    renderBacklog();
+  });
+});
+
+// init
+renderAgents();
+renderBacklog();
+updateStats();
+</script>
+</body>
+</html>
