@@ -6,7 +6,7 @@
 
 -- ============================================================
 -- TALLER ARTEO - Script SQL Completo
--- Base de datos PostgreSQL v1.0
+-- Base de datos PostgreSQL v1.0 a ejecutar
 -- Incluye: Schema + Datos semilla de ambos Excel
 -- ============================================================
 
