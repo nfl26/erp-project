@@ -20,7 +20,7 @@ services:
       interval: 5s
       timeout: 5s
       retries: 12
-      start_period: 10s
+      start_period: 30s
     networks:
       - erp-network
 
@@ -61,7 +61,7 @@ services:
       - ./infra/local/pgadmin/servers.json:/pgadmin4/servers.json:ro
     depends_on:
       postgres:
-        condition: service_healthy
+        condition: service_started
     networks:
       - erp-network
 
