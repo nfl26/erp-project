@@ -122,6 +122,19 @@ Vhost `/erp`:
 
 DLQs: `dlq.bodega`, `dlq.ventas`, `dlq.produccion`, `dlq.auth`
 
+### Por qué los passwords de RabbitMQ no están en `definitions.json`
+
+`definitions.json` es un archivo commiteado en el repo. Si los passwords de `dev-publisher` y `dev-consumer` estuvieran ahí — aunque fuesen "solo dev" — el patrón permitiría por error passwords reales en staging o producción.
+
+En su lugar, `dev-up.sh` los crea vía `rabbitmqctl` **después** de que el contenedor arranca, leyendo directamente de `.env`:
+
+```bash
+rabbitmqctl add_user "$RABBITMQ_PUBLISHER_USER" "$RABBITMQ_PUBLISHER_PASSWORD"
+rabbitmqctl set_permissions -p /erp "$RABBITMQ_PUBLISHER_USER" "" ".*" ""
+```
+
+`definitions.json` solo define la topología (vhosts, exchanges, queues) — estructuras sin secretos. Este patrón aplica igual en staging y producción: la topología va en git, las credenciales van en el gestor de secretos (External Secrets / AWS Secrets Manager en T-018).
+
 ### Usuarios de desarrollo en `tenant_demo`
 
 | Email | Password | Rol |
