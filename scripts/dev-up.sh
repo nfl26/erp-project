@@ -12,6 +12,14 @@ success() { echo -e "${GREEN}✓${NC} $*"; }
 warn()    { echo -e "${YELLOW}⚠${NC}  $*"; }
 err()     { echo -e "${RED}✗${NC} $*" >&2; }
 
+# ── Verificar Docker ─────────────────────────────────────────────────────────
+if ! docker info &>/dev/null; then
+    err "Docker no está corriendo."
+    echo "  Inicie Docker Desktop y espere a que el ícono muestre 'Running'."
+    echo "  En Windows: busque Docker Desktop en el menú Inicio."
+    exit 1
+fi
+
 # ── Verificar .env ────────────────────────────────────────────────────────────
 if [ ! -f ".env" ]; then
     err "Archivo .env no existe."
