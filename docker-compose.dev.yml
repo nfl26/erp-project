@@ -1,0 +1,16 @@
+# Overrides para desarrollo local
+# Uso: docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+# (El script ./scripts/dev-up.sh lo hace automáticamente)
+
+services:
+  postgres:
+    restart: unless-stopped
+
+  redis:
+    restart: unless-stopped
+
+  pgadmin:
+    restart: unless-stopped
+
+  rabbitmq:
+    restart: unless-stopped

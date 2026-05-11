@@ -1,0 +1,40 @@
+# Entorno local — nunca commitear
+.env
+*.local.env
+
+# Volúmenes Docker generados localmente
+volumes/
+
+# pgAdmin pgpass generado (contiene passwords)
+infra/local/pgadmin/pgpass
+
+# Node / npm
+node_modules/
+dist/
+.next/
+.angular/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+
+# Editores e IDEs
+.DS_Store
+Thumbs.db
+.vscode/settings.json
+.idea/
+*.swp
+*.swo
+
+# Logs
+*.log
+logs/
+
+# Build artifacts
+build/
+out/
