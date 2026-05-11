@@ -1,121 +1,234 @@
-name: Smoke Test — Docker Compose Local
+name: CI
 
 on:
-  push:
-    branches: [main, staging, "feat/**"]
-    paths:
-      - "docker-compose*.yml"
-      - "infra/local/**"
-      - ".env.example"
-      - ".github/workflows/ci.yml"
   pull_request:
-    paths:
-      - "docker-compose*.yml"
-      - "infra/local/**"
-      - ".env.example"
-      - ".github/workflows/ci.yml"
+    branches: [main, staging]
 
 jobs:
-  smoke-test:
-    name: Smoke test docker-compose local
+  # ─── Job 1: Lint & typecheck ────────────────────────────────────────────────
+  lint-and-typecheck:
+    name: Lint & Typecheck
     runs-on: ubuntu-latest
-    timeout-minutes: 5
-
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Crear .env desde .env.example
-        run: cp .env.example .env
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: services/erp-api/package-lock.json
 
-      - name: Levantar servicios (modo test)
-        run: |
-          docker compose \
-            -f docker-compose.yml \
-            -f docker-compose.test.yml \
-            up -d
+      - name: Install dependencies
+        run: cd services/erp-api && npm ci
 
-      - name: Esperar PostgreSQL
-        run: |
-          for i in $(seq 1 30); do
-            docker compose exec -T postgres \
-              pg_isready -U erp_admin -d erp_db && break
-            echo "Intento $i/30 — esperando PostgreSQL..."
-            sleep 3
-          done
+      - name: Lint
+        run: cd services/erp-api && npm run lint
 
-      - name: Esperar Redis
-        run: |
-          for i in $(seq 1 15); do
-            docker compose exec -T redis redis-cli ping | grep -q PONG && break
-            echo "Intento $i/15 — esperando Redis..."
-            sleep 2
-          done
+      - name: Typecheck
+        run: cd services/erp-api && npm run typecheck
 
-      - name: Esperar RabbitMQ
-        run: |
-          for i in $(seq 1 30); do
-            docker compose exec -T rabbitmq \
-              rabbitmq-diagnostics check_running 2>/dev/null && break
-            echo "Intento $i/30 — esperando RabbitMQ..."
-            sleep 3
-          done
+  # ─── Job 2: Unit tests ──────────────────────────────────────────────────────
+  test-unit:
+    name: Unit Tests
+    needs: lint-and-typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
 
-      - name: Verificar schemas de tenant en PostgreSQL
-        run: |
-          docker compose exec -T postgres psql -U erp_admin -d erp_db \
-            -c "\dn" | grep -q "tenant_demo"
-          echo "✓ Schema tenant_demo existe"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: services/erp-api/package-lock.json
 
-          docker compose exec -T postgres psql -U erp_admin -d erp_db \
-            -c "SELECT COUNT(*) FROM public.tenants;" \
-            | grep -E "^\s+3$"
-          echo "✓ 3 tenants registrados en public.tenants"
+      - name: Install dependencies
+        run: cd services/erp-api && npm ci
 
-      - name: Verificar datos en tenant_demo
-        run: |
-          docker compose exec -T postgres psql -U erp_admin -d erp_db \
-            -c "SELECT COUNT(*) FROM tenant_demo.categorias;" \
-            | grep -E "^\s+[0-9]+$"
-          echo "✓ Categorías sembradas en tenant_demo"
+      - name: Run unit tests with coverage
+        run: cd services/erp-api && npm run test -- --coverage
 
-      - name: Verificar exchanges en RabbitMQ
-        run: |
-          docker compose exec -T rabbitmq \
-            rabbitmqadmin list exchanges --vhost=/erp \
-            | grep -q "bodega.events"
-          echo "✓ Exchange bodega.events existe en vhost /erp"
-
-          docker compose exec -T rabbitmq \
-            rabbitmqadmin list exchanges --vhost=/erp \
-            | grep -q "ventas.events"
-          echo "✓ Exchange ventas.events existe en vhost /erp"
-
-      - name: Verificar DLQs en RabbitMQ
-        run: |
-          docker compose exec -T rabbitmq \
-            rabbitmqadmin list queues --vhost=/erp \
-            | grep -q "dlq.bodega"
-          echo "✓ DLQ dlq.bodega existe"
-
-      - name: Smoke test conexión desde contenedor externo
-        run: |
-          docker run --rm --network erp-network postgres:15.5-alpine \
-            psql -h postgres -U erp_admin -d erp_db -c "SELECT 1;" \
-            -w --no-password \
-            || true
-          echo "✓ Conexión desde red erp-network OK"
-
-      - name: Medir consumo de RAM
-        run: |
-          echo "Consumo de RAM por contenedor:"
-          docker stats --no-stream --format \
-            "table {{.Name}}\t{{.MemUsage}}\t{{.MemPerc}}"
-
-      - name: Detener servicios
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
         if: always()
+        with:
+          name: coverage-report
+          path: services/erp-api/coverage/
+          retention-days: 7
+
+  # ─── Job 3: Integration tests ───────────────────────────────────────────────
+  # Corre en paralelo con test-unit (ambos dependen solo de lint-and-typecheck)
+  test-integration:
+    name: Integration Tests
+    needs: lint-and-typecheck
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: erp_admin
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: erp_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+      redis:
+        image: redis:7
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: services/erp-api/package-lock.json
+
+      - name: Install dependencies
+        run: cd services/erp-api && npm ci
+
+      - name: Run Prisma migrations
+        run: cd services/erp-api && npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://erp_admin:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/erp_db
+
+      - name: Run integration tests
+        run: cd services/erp-api && npm run test:integration
+        env:
+          DATABASE_URL: postgresql://erp_admin:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/erp_db
+          REDIS_URL: ${{ secrets.REDIS_URL }}
+
+  # ─── Job 4: Build ───────────────────────────────────────────────────────────
+  build:
+    name: Build
+    needs: [test-unit, test-integration]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: services/erp-api/package-lock.json
+
+      - name: Install dependencies
+        run: cd services/erp-api && npm ci
+
+      - name: Build
+        run: cd services/erp-api && npm run build
+
+  # ─── Job 5: Validate docs (warning only, no bloquea merge) ─────────────────
+  validate-docs:
+    name: Validate Docs
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify required docs exist
         run: |
-          docker compose \
-            -f docker-compose.yml \
-            -f docker-compose.test.yml \
-            down -v
+          files=(
+            "CLAUDE.md"
+            "docs/prisma-workflow.md"
+            "docs/architecture.md"
+            "docs/stack.md"
+            "docs/events.md"
+            "docs/glossary.md"
+          )
+          missing=0
+          for f in "${files[@]}"; do
+            if [ ! -f "$f" ]; then
+              echo "::warning file=$f::Required doc is missing: $f"
+              missing=1
+            else
+              echo "✓ $f"
+            fi
+          done
+          exit $missing
+
+      - name: Lint Markdown
+        run: npx markdownlint-cli2 "**/*.md" "#**/node_modules/**"
+        continue-on-error: true
+
+      - name: Lint shell scripts
+        run: |
+          find . -name "*.sh" \
+            -not -path "*/node_modules/*" \
+            -not -path "*/.git/*" \
+            -print0 \
+          | xargs -0 -r shellcheck --severity=warning
+        continue-on-error: true
+
+  # ─── Job 6: Security scan ───────────────────────────────────────────────────
+  security-scan:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: services/erp-api/package-lock.json
+
+      - name: Install dependencies
+        run: cd services/erp-api && npm ci
+
+      - name: npm audit (high severity)
+        run: cd services/erp-api && npm audit --audit-level=high
+
+      - name: TruffleHog secret scan
+        uses: trufflesecurity/trufflehog@v3
+        with:
+          path: ./
+          base: ${{ github.event.pull_request.base.sha }}
+          head: ${{ github.event.pull_request.head.sha }}
+          extra_args: --only-verified
+
+  # ─── Job 7: Set CI status check ─────────────────────────────────────────────
+  # Siempre corre (if: always()) y llama a la Statuses API para fijar el contexto
+  # exacto "ci". Es el único check que branch protection debe requerir.
+  set-ci-status:
+    name: Set CI Status
+    needs: [build, security-scan]
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      statuses: write
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const buildResult    = '${{ needs.build.result }}';
+            const securityResult = '${{ needs.security-scan.result }}';
+            const passed = buildResult === 'success' && securityResult === 'success';
+
+            // En pull_request, context.sha es el merge commit; necesitamos el head del PR.
+            const sha = context.payload.pull_request
+              ? context.payload.pull_request.head.sha
+              : context.sha;
+
+            await github.rest.repos.createCommitStatus({
+              owner:       context.repo.owner,
+              repo:        context.repo.repo,
+              sha,
+              state:       passed ? 'success' : 'failure',
+              context:     'ci',
+              description: passed
+                ? 'All checks passed'
+                : `build=${buildResult} security=${securityResult}`,
+              target_url: `${context.serverUrl}/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
+            });
