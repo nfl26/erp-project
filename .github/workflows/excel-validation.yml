@@ -1,0 +1,182 @@
+name: Excel Validation
+
+on:
+  pull_request:
+    # Corre cuando se agrega el label, se hace push al PR, o se reabre.
+    # Los jobs se filtran internamente con la condición del label.
+    types: [labeled, synchronize, reopened]
+    branches: [main, staging]
+
+jobs:
+  # ─── Job 1: Ejecutar fixture de 50 casos de costo-calculator ────────────────
+  validate-excel-fixtures:
+    name: Validate Excel Fixtures
+    if: contains(github.event.pull_request.labels.*.name, 'needs:excel-validation')
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: erp_admin
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          POSTGRES_DB: erp_db
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    outputs:
+      passed:       ${{ steps.parse-results.outputs.passed }}
+      failed:       ${{ steps.parse-results.outputs.failed }}
+      total:        ${{ steps.parse-results.outputs.total }}
+      failed_cases: ${{ steps.parse-results.outputs.failed_cases }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: services/erp-api/package-lock.json
+
+      - name: Install dependencies
+        run: cd services/erp-api && npm ci
+
+      - name: Run Prisma migrations
+        run: cd services/erp-api && npx prisma migrate deploy
+        env:
+          DATABASE_URL: postgresql://erp_admin:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/erp_db
+
+      - name: Run costo-calculator tests (JSON output)
+        id: run-tests
+        # set +e para no abortar si Jest sale con código != 0
+        run: |
+          cd services/erp-api
+          set +e
+          npm run test -- \
+            --testPathPattern=costo-calculator \
+            --json \
+            --outputFile=/tmp/jest-results.json \
+            --forceExit
+          echo "jest_exit=$?" >> "$GITHUB_ENV"
+        env:
+          DATABASE_URL: postgresql://erp_admin:${{ secrets.POSTGRES_PASSWORD }}@localhost:5432/erp_db
+
+      - name: Parse results and set outputs
+        id: parse-results
+        run: |
+          node << 'EOF'
+          const fs = require('fs');
+
+          let results;
+          try {
+            results = JSON.parse(fs.readFileSync('/tmp/jest-results.json', 'utf8'));
+          } catch (e) {
+            console.error('No se pudo leer /tmp/jest-results.json:', e.message);
+            process.exit(1);
+          }
+
+          const passed = results.numPassedTests  ?? 0;
+          const failed = results.numFailedTests  ?? 0;
+          const total  = results.numTotalTests   ?? 0;
+
+          const failedNames = (results.testResults ?? [])
+            .flatMap(suite => suite.testResults ?? [])
+            .filter(t => t.status === 'failed')
+            .map(t => t.fullName)
+            .join('|');
+
+          const out = process.env.GITHUB_OUTPUT;
+          fs.appendFileSync(out, `passed=${passed}\n`);
+          fs.appendFileSync(out, `failed=${failed}\n`);
+          fs.appendFileSync(out, `total=${total}\n`);
+          fs.appendFileSync(out, `failed_cases=${failedNames}\n`);
+
+          console.log(`Resultado: ${passed}/${total} casos pasaron.`);
+
+          if (passed < 49) {
+            console.error(
+              `::error::Excel validation FAILED: solo ${passed} de ${total} casos pasaron. ` +
+              `Mínimo requerido: 49. Ver ADR-008.`
+            );
+            process.exit(1);
+          }
+
+          console.log('Excel validation PASSED ✓');
+          EOF
+
+  # ─── Job 2: Comentar resultado en el PR ─────────────────────────────────────
+  comment-results:
+    name: Comment PR Results
+    needs: validate-excel-fixtures
+    runs-on: ubuntu-latest
+    # Siempre corre para dejar el comentario, incluso si el job anterior falló.
+    if: always() && contains(github.event.pull_request.labels.*.name, 'needs:excel-validation')
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/github-script@v7
+        with:
+          script: |
+            const jobResult  = '${{ needs.validate-excel-fixtures.result }}';
+            const passed     = '${{ needs.validate-excel-fixtures.outputs.passed }}' || '0';
+            const failed     = '${{ needs.validate-excel-fixtures.outputs.failed }}' || '?';
+            const total      = '${{ needs.validate-excel-fixtures.outputs.total }}'  || '?';
+            const rawCases   = '${{ needs.validate-excel-fixtures.outputs.failed_cases }}';
+
+            const failedCases = rawCases
+              ? rawCases.split('|').filter(Boolean)
+              : [];
+
+            const icon   = jobResult === 'success' ? '✅' : '❌';
+            const status = jobResult === 'success' ? 'PASSED' : 'FAILED';
+
+            let body = [
+              `## ${icon} Excel Validation — ${status}`,
+              '',
+              '| Casos totales | Pasaron | Fallaron |',
+              '|:---:|:---:|:---:|',
+              `| ${total} | ${passed} | ${failed} |`,
+            ].join('\n');
+
+            if (failedCases.length > 0) {
+              body += '\n\n### Casos fallidos\n';
+              body += failedCases.map(c => `- \`${c}\``).join('\n');
+            }
+
+            if (jobResult !== 'success') {
+              body += '\n\n> **Mínimo requerido: 49/50 casos.** ' +
+                      'Ver [ADR-008](docs/adrs/ADR-008-excel-validation-como-guardrail.md).';
+            }
+
+            body += '\n\n_Generado automáticamente por `excel-validation.yml`._';
+
+            // Actualizar comentario existente si ya hay uno del bot, sino crear uno nuevo.
+            const { data: comments } = await github.rest.issues.listComments({
+              owner:        context.repo.owner,
+              repo:         context.repo.repo,
+              issue_number: context.issue.number
+            });
+
+            const existing = comments.find(c =>
+              c.user.login === 'github-actions[bot]' &&
+              c.body.includes('Excel Validation')
+            );
+
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner:      context.repo.owner,
+                repo:       context.repo.repo,
+                comment_id: existing.id,
+                body
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner:        context.repo.owner,
+                repo:         context.repo.repo,
+                issue_number: context.issue.number,
+                body
+              });
+            }

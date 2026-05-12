@@ -1,0 +1,16 @@
+{
+  "name": "erp-api",
+  "version": "0.0.0",
+  "description": "ERP API — NestJS 10 + Fastify + Prisma (placeholder, implementación real en T-004)",
+  "private": true,
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "lint":             "echo '[placeholder] lint — implementación real en T-004' && exit 0",
+    "typecheck":        "echo '[placeholder] typecheck — implementación real en T-004' && exit 0",
+    "test":             "echo '[placeholder] test — implementación real en T-004' && exit 0",
+    "test:integration": "echo '[placeholder] test:integration — implementación real en T-004' && exit 0",
+    "build":            "echo '[placeholder] build — implementación real en T-004' && exit 0"
+  }
+}
