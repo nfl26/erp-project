@@ -38,3 +38,6 @@ logs/
 # Build artifacts
 build/
 out/
+
+# Test coverage
+coverage/
