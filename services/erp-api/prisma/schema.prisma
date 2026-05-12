@@ -1,5 +1,8 @@
 // PLACEHOLDER — será reemplazado por `prisma db pull` en T-004
 // No representa el schema real de Arteo. Ver docs/prisma-workflow.md
+//
+// Prisma 7: la URL de conexión ya no va aquí.
+// Se configura en prisma.config.ts (para la CLI) y vía adapter en PrismaService (runtime).
 
 generator client {
   provider        = "prisma-client-js"
@@ -8,5 +11,4 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
