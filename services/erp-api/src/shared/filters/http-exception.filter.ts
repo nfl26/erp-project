@@ -1,9 +1,4 @@
-import {
-  ArgumentsHost,
-  Catch,
-  ExceptionFilter,
-  HttpException,
-} from '@nestjs/common';
+import { ArgumentsHost, Catch, ExceptionFilter, HttpException } from '@nestjs/common';
 import { FastifyReply, FastifyRequest } from 'fastify';
 import { randomUUID } from 'node:crypto';
 
@@ -47,8 +42,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       ? rawMessage.join('; ')
       : String(rawMessage ?? exception.message);
 
-    const traceId =
-      (request.headers['x-trace-id'] as string | undefined) ?? randomUUID();
+    const traceId = (request.headers['x-trace-id'] as string | undefined) ?? randomUUID();
 
     response.status(status).send({
       type: `https://erp.arteo.cl/errors/${ERROR_SLUGS[status] ?? 'error'}`,

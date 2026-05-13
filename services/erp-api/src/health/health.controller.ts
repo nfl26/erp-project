@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  Inject,
-  ServiceUnavailableException,
-} from '@nestjs/common';
+import { Controller, Get, Inject, ServiceUnavailableException } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import Redis from 'ioredis';
 import { PrismaService } from '../shared/prisma/prisma.service';
@@ -19,10 +14,7 @@ export class HealthController {
   @Get()
   @ApiOperation({ summary: 'Health check — no requiere autenticación' })
   async check() {
-    const [dbStatus, redisStatus] = await Promise.all([
-      this.checkDatabase(),
-      this.checkRedis(),
-    ]);
+    const [dbStatus, redisStatus] = await Promise.all([this.checkDatabase(), this.checkRedis()]);
 
     const timestamp = new Date().toISOString();
 

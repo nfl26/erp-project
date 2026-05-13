@@ -1,8 +1,5 @@
 import { NestFactory } from '@nestjs/core';
-import {
-  FastifyAdapter,
-  NestFastifyApplication,
-} from '@nestjs/platform-fastify';
+import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { RequestMethod, ValidationPipe } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -33,10 +30,7 @@ async function bootstrap() {
   });
 
   const configService = app.get(ConfigService);
-  const corsOrigins = configService
-    .get<string>('CORS_ORIGINS', '')
-    .split(',')
-    .filter(Boolean);
+  const corsOrigins = configService.get<string>('CORS_ORIGINS', '').split(',').filter(Boolean);
   app.enableCors({ origin: corsOrigins.length > 0 ? corsOrigins : false });
 
   if (configService.get<string>('NODE_ENV') !== 'production') {

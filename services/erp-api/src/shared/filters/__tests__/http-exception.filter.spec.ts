@@ -5,7 +5,12 @@ function makeHost(url: string, traceId?: string) {
   const sent: { statusCode: number; body: unknown } = { statusCode: 0, body: null };
   const request = { url, headers: traceId ? { 'x-trace-id': traceId } : {} };
   const response = {
-    status: (code: number) => ({ send: (body: unknown) => { sent.statusCode = code; sent.body = body; } }),
+    status: (code: number) => ({
+      send: (body: unknown) => {
+        sent.statusCode = code;
+        sent.body = body;
+      },
+    }),
   };
   return {
     host: {
