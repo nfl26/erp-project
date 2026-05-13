@@ -7,7 +7,13 @@ const config: Config = {
   transform: {
     '^.+\\.(t|j)s$': ['ts-jest', { tsconfig: './tsconfig.json' }],
   },
-  collectCoverageFrom: ['**/*.(t|j)s'],
+  collectCoverageFrom: [
+    '**/*.(t|j)s',
+    '!main.ts',
+    '!**/*.module.ts',
+    '!**/*.spec.ts',
+    '!**/*.d.ts',
+  ],
   coverageDirectory: '../coverage',
   testEnvironment: 'node',
   coverageThreshold: {
