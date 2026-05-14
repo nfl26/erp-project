@@ -21,5 +21,34 @@ module.exports = {
     '@typescript-eslint/explicit-function-return-type': 'off',
     '@typescript-eslint/explicit-module-boundary-types': 'off',
     '@typescript-eslint/no-explicit-any': 'warn',
+    'no-restricted-imports': [
+      'error',
+      {
+        patterns: [
+          {
+            group: ['**/modules/produccion/internal/**'],
+            message:
+              'No importar desde produccion/internal directamente. Usa ProduccionFacade (public/).',
+          },
+        ],
+      },
+    ],
   },
+  overrides: [
+    {
+      // Los archivos dentro de produccion/internal pueden importarse entre sí
+      files: ['src/modules/produccion/internal/**/*.ts'],
+      rules: {
+        'no-restricted-imports': 'off',
+      },
+    },
+    {
+      // Los archivos del propio módulo produccion (no internal) pueden importar internal
+      files: ['src/modules/produccion/**/*.ts'],
+      excludedFiles: ['src/modules/produccion/internal/**/*.ts'],
+      rules: {
+        'no-restricted-imports': 'off',
+      },
+    },
+  ],
 };

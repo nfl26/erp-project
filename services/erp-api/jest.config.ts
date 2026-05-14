@@ -2,19 +2,21 @@ import type { Config } from 'jest';
 
 const config: Config = {
   moduleFileExtensions: ['js', 'json', 'ts'],
-  rootDir: 'src',
+  rootDir: '.',
+  roots: ['<rootDir>/src', '<rootDir>/test'],
   testRegex: '.*\\.spec\\.ts$',
+  testPathIgnorePatterns: ['\\.e2e-spec\\.ts$'],
   transform: {
     '^.+\\.(t|j)s$': ['ts-jest', { tsconfig: './tsconfig.json' }],
   },
   collectCoverageFrom: [
-    '**/*.(t|j)s',
-    '!main.ts',
-    '!**/*.module.ts',
-    '!**/*.spec.ts',
-    '!**/*.d.ts',
+    'src/**/*.(t|j)s',
+    '!src/main.ts',
+    '!src/**/*.module.ts',
+    '!src/**/*.spec.ts',
+    '!src/**/*.d.ts',
   ],
-  coverageDirectory: '../coverage',
+  coverageDirectory: './coverage',
   testEnvironment: 'node',
   coverageThreshold: {
     global: { lines: 80 },

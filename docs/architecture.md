@@ -689,6 +689,22 @@ Los diagramas Mermaid están en el propio archivo y son modificables con un PR n
 
 ---
 
+## Módulos del monolito NestJS
+
+Cada directorio bajo `services/erp-api/src/modules/` es un bounded context con su propio `public/` (contrato exportado) e `internal/` (implementación encapsulada).
+
+| Módulo         | Responsabilidad principal                          | Ticket scaffolding | Agente |
+|----------------|----------------------------------------------------|--------------------|--------|
+| `auth`         | Autenticación JWT + Keycloak, RBAC                 | —                  | A1     |
+| `bodega`       | Stock, movimientos, categorías de insumos          | —                  | A1     |
+| `ventas`       | Cotizaciones, órdenes de venta, eventos `venta.*`  | —                  | A1     |
+| `produccion`   | O/Ps, recetas, tarifas, motor de costos            | T-005              | A1 + S2|
+| `notificaciones` | Fanout de eventos hacia canales externos         | —                  | A1     |
+
+**Regla de encapsulación:** ningún módulo puede importar desde `internal/` de otro módulo. La comunicación entre módulos ocurre exclusivamente a través de su `public/` (facade) o mediante eventos `EventEmitter2`. El test `test/architecture.spec.ts` verifica esta regla en CI.
+
+---
+
 ## Referencias cruzadas
 
 - [Stack tecnológico](stack.md) — qué tecnologías específicas se usan.
