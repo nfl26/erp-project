@@ -1,7 +1,7 @@
 -- ============================================================
--- 03-seed-demo-data.sql — Usuarios dev en tenant_demo
+-- 03-seed-demo-data.sql — Usuarios dev en tenant_erp
 --
--- Ejecuta DESPUÉS de 02 (que establece search_path = tenant_demo)
+-- Ejecuta DESPUÉS de 02 (que establece search_path = tenant_erp)
 -- y ANTES de 04 (que crea las tablas de negocio con IF NOT EXISTS).
 --
 -- Este script crea la tabla usuarios con la misma definición

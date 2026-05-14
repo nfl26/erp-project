@@ -201,7 +201,7 @@ graph TB
             B4[...]
         end
 
-        subgraph T3["schema: tenant_demo"]
+        subgraph T3["schema: tenant_erp"]
             D1[...]
         end
     end

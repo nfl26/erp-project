@@ -64,20 +64,20 @@ jobs:
       - name: Verificar schemas de tenant en PostgreSQL
         run: |
           docker compose exec -T postgres psql -U erp_admin -d erp_db \
-            -c "\dn" | grep -q "tenant_demo"
-          echo "✓ Schema tenant_demo existe"
+            -c "\dn" | grep -q "tenant_erp"
+          echo "✓ Schema tenant_erp existe"
 
           docker compose exec -T postgres psql -U erp_admin -d erp_db \
             -c "SELECT COUNT(*) FROM public.tenants;" \
             | grep -E "^\s+3$"
           echo "✓ 3 tenants registrados en public.tenants"
 
-      - name: Verificar datos en tenant_demo
+      - name: Verificar datos en tenant_erp
         run: |
           docker compose exec -T postgres psql -U erp_admin -d erp_db \
-            -c "SELECT COUNT(*) FROM tenant_demo.categorias;" \
+            -c "SELECT COUNT(*) FROM tenant_erp.categorias;" \
             | grep -E "^\s+[0-9]+$"
-          echo "✓ Categorías sembradas en tenant_demo"
+          echo "✓ Categorías sembradas en tenant_erp"
 
       - name: Verificar exchanges en RabbitMQ
         run: |

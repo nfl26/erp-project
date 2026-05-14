@@ -88,7 +88,7 @@ erp-project/
 ### Multi-tenancy pre-configurada
 
 - [ ] En el init SQL se crea el schema `public` con tabla `tenants`.
-- [ ] Se crean **3 tenants de desarrollo**: `tenant_acme`, `tenant_beta`, `tenant_demo`.
+- [ ] Se crean **3 tenants de desarrollo**: `tenant_acme`, `tenant_beta`, `tenant_erp`.
 - [ ] Cada schema de tenant se crea vacío — las migraciones de cada servicio lo poblarán.
 - [ ] Se registran los 3 tenants en `public.tenants`.
 
@@ -106,9 +106,9 @@ Ver [ADR-006](../../docs/adrs/ADR-006-rabbitmq-para-mensajeria.md) y [events.md]
 
 ### Seeds de desarrollo
 
-- [ ] En `tenant_demo` se insertan 5 categorías de ejemplo, 20 insumos de ejemplo, 2 usuarios (1 admin, 1 bodeguero) — útil para probar UIs durante desarrollo.
+- [ ] En `tenant_erp` se insertan 5 categorías de ejemplo, 20 insumos de ejemplo, 2 usuarios (1 admin, 1 bodeguero) — útil para probar UIs durante desarrollo.
 - [ ] Los seeds son **idempotentes** (usan `ON CONFLICT DO NOTHING`).
-- [ ] Los seeds solo corren en `tenant_demo`, nunca en `tenant_acme` o `tenant_beta`.
+- [ ] Los seeds solo corren en `tenant_erp`, nunca en `tenant_acme` o `tenant_beta`.
 
 ### Scripts auxiliares
 
@@ -159,7 +159,7 @@ Ver [ADR-006](../../docs/adrs/ADR-006-rabbitmq-para-mensajeria.md) y [events.md]
 5. **Una sola red `erp-network`.** Todos los servicios del docker-compose se comunican por esta red interna.
 6. **DNS interno obligatorio.** Un servicio se refiere a otro por nombre de contenedor (`postgres`, `redis`), no por `localhost` ni por IP.
 7. **Puertos hacia host documentados.** Cada puerto expuesto al host tiene un comentario explicando por qué (debug, acceso desde IDE, etc.).
-8. **Seeds no tocan datos de producción.** Los seeds solo corren en `tenant_demo`, nunca en otros schemas.
+8. **Seeds no tocan datos de producción.** Los seeds solo corren en `tenant_erp`, nunca en otros schemas.
 
 ---
 
@@ -180,14 +180,14 @@ psql -h localhost -p 5432 -U erp_admin -d erp_db -c "\dt public.*"
 # esperado: muestra tabla 'tenants'
 
 psql -h localhost -p 5432 -U erp_admin -d erp_db -c "\dn"
-# esperado: muestra schemas tenant_acme, tenant_beta, tenant_demo
+# esperado: muestra schemas tenant_acme, tenant_beta, tenant_erp
 ```
 
 ### Caso 3 — Conexión a PostgreSQL desde un contenedor
 
 ```bash
 docker compose exec postgres psql -U erp_admin -d erp_db \
-  -c "SELECT COUNT(*) FROM tenant_demo.insumos;"
+  -c "SELECT COUNT(*) FROM tenant_erp.insumos;"
 # esperado: 20 (seeds aplicados)
 ```
 

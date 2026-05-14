@@ -41,7 +41,7 @@ PostgreSQL instance
 │   ├── insumos
 │   ├── movimientos_bodega
 │   └── ...
-└── schema: tenant_demo         ← para demos y testing
+└── schema: tenant_erp         ← para demos y testing
 ```
 
 ### Resolución de tenant

@@ -5,7 +5,7 @@
 --
 -- IMPORTANTE: El ALTER DATABASE al final de este script hace que
 -- todos los scripts siguientes (03, 04, ...) y las conexiones
--- de la aplicación sin search_path explícito usen tenant_demo
+-- de la aplicación sin search_path explícito usen tenant_erp
 -- como schema por defecto. Los servicios NestJS siempre
 -- establecen SET search_path = tenant_<id> por conexión,
 -- por lo que este default solo aplica a herramientas de dev.
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS public.tenants (
 
 CREATE SCHEMA IF NOT EXISTS tenant_acme;
 CREATE SCHEMA IF NOT EXISTS tenant_beta;
-CREATE SCHEMA IF NOT EXISTS tenant_demo;
+CREATE SCHEMA IF NOT EXISTS tenant_erp;
 
 -- ── Registrar tenants en public ──────────────────────────────────────────
 INSERT INTO public.tenants (id, nombre, active) VALUES
@@ -37,5 +37,5 @@ ON CONFLICT (id) DO NOTHING;
 
 -- ── Default search_path de la BD ──────────────────────────────────────────
 -- Hace que los scripts 03 y 04 (y psql sin -c "SET search_path")
--- operen en tenant_demo. La aplicación lo sobreescribe por conexión.
-ALTER DATABASE erp_db SET search_path TO tenant_demo, public;
+-- operen en tenant_erp. La aplicación lo sobreescribe por conexión.
+ALTER DATABASE erp_db SET search_path TO tenant_erp, public;

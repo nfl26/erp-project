@@ -9,10 +9,10 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  schemas  = ["public", "tenant_demo"]
+  schemas  = ["public", "tenant_erp"]
 }
 
-// ─── Enums (tenant_demo) ─────────────────────────────────────────────────────
+// ─── Enums (tenant_erp) ─────────────────────────────────────────────────────
 
 enum RolUsuario {
   admin
@@ -20,7 +20,7 @@ enum RolUsuario {
   operario
   comprador
 
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
   @@map("rol_usuario")
 }
 
@@ -32,7 +32,7 @@ enum EstadoPedido {
   entregado
   cancelado
 
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
   @@map("estado_pedido")
 }
 
@@ -43,7 +43,7 @@ enum CanalVenta {
   mercadolibre
   web
 
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
   @@map("canal_venta")
 }
 
@@ -52,7 +52,7 @@ enum EstadoOrden {
   en_proceso
   finalizado
 
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
   @@map("estado_orden")
 }
 
@@ -61,7 +61,7 @@ enum EstadoVenta {
   parcial
   pagado
 
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
   @@map("estado_venta")
 }
 
@@ -72,7 +72,7 @@ enum MedioPago {
   debito
   credito
 
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
   @@map("medio_pago")
 }
 
@@ -84,7 +84,7 @@ enum EstadoProducto {
   no_cortado
   sin_diseno
 
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
   @@map("estado_producto")
 }
 
@@ -103,7 +103,7 @@ model Tenant {
   @@schema("public")
 }
 
-// ─── Models: schema tenant_demo ──────────────────────────────────────────────
+// ─── Models: schema tenant_erp ──────────────────────────────────────────────
 
 model Categoria {
   id_categoria Int     @id @default(autoincrement())
@@ -113,7 +113,7 @@ model Categoria {
   productos Producto[]
 
   @@map("categorias")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model Comprador {
@@ -129,7 +129,7 @@ model Comprador {
   pedidos Pedido[]
 
   @@map("compradores")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model Proveedor {
@@ -145,7 +145,7 @@ model Proveedor {
   compras Compra[]
 
   @@map("proveedores")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model Usuario {
@@ -163,7 +163,7 @@ model Usuario {
   vendedores   Vendedor[]
 
   @@map("usuarios")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model Vendedor {
@@ -177,7 +177,7 @@ model Vendedor {
   ventas  Venta[]
 
   @@map("vendedores")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model ManoDeObra {
@@ -191,7 +191,7 @@ model ManoDeObra {
   ordenes_produccion OrdenProduccion[]
 
   @@map("mano_de_obra")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model Material {
@@ -215,7 +215,7 @@ model Material {
   recetas         Receta[]
 
   @@map("materiales")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model Compra {
@@ -233,7 +233,7 @@ model Compra {
   detalles  DetalleCompra[]
 
   @@map("compras")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model DetalleCompra {
@@ -249,7 +249,7 @@ model DetalleCompra {
   material Material @relation(fields: [id_material], references: [id_material])
 
   @@map("detalle_compra")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model Producto {
@@ -268,7 +268,7 @@ model Producto {
   detalle_pedido DetallePedido[]
 
   @@map("productos")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model NivelPrecioCorte {
@@ -280,7 +280,7 @@ model NivelPrecioCorte {
   ordenes_produccion OrdenProduccion[]
 
   @@map("niveles_precio_corte")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model Receta {
@@ -310,7 +310,7 @@ model Receta {
   detalle_pedido     DetallePedido[]
 
   @@map("recetas")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model ParametroCorte {
@@ -327,7 +327,7 @@ model ParametroCorte {
   receta Receta @relation(fields: [id_receta], references: [id_receta])
 
   @@map("parametros_corte")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model Grabado {
@@ -347,7 +347,7 @@ model Grabado {
   producto Producto? @relation(fields: [id_producto], references: [id_producto])
 
   @@map("grabados")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model PrecioVenta {
@@ -361,7 +361,7 @@ model PrecioVenta {
   producto Producto @relation(fields: [id_producto], references: [id_producto])
 
   @@map("precios_venta")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model Pedido {
@@ -382,7 +382,7 @@ model Pedido {
   ventas             Venta[]
 
   @@map("pedidos")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model DetallePedido {
@@ -400,7 +400,7 @@ model DetallePedido {
   receta   Receta?  @relation(fields: [id_receta], references: [id_receta])
 
   @@map("detalle_pedido")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model OrdenProduccion {
@@ -425,7 +425,7 @@ model OrdenProduccion {
   operario ManoDeObra?      @relation(fields: [id_operario], references: [id_operario])
 
   @@map("ordenes_produccion")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model Venta {
@@ -443,7 +443,7 @@ model Venta {
   pagos    Pago[]
 
   @@map("ventas")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 model Pago {
@@ -458,13 +458,13 @@ model Pago {
   venta Venta @relation(fields: [id_venta], references: [id_venta])
 
   @@map("pagos")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
-// ─── Views (tenant_demo) ─────────────────────────────────────────────────────
+// ─── Views (tenant_erp) ─────────────────────────────────────────────────────
 // Columnas inferidas desde la tabla subyacente. Verificar con:
 //   SELECT column_name, data_type FROM information_schema.columns
-//   WHERE table_schema = 'tenant_demo' AND table_name = 'v_materiales_activos';
+//   WHERE table_schema = 'tenant_erp' AND table_name = 'v_materiales_activos';
 
 view VMaterialesActivos {
   id_material      Int      @unique
@@ -484,18 +484,18 @@ view VMaterialesActivos {
   activo           Boolean
 
   @@map("v_materiales_activos")
-  @@schema("tenant_demo")
+  @@schema("tenant_erp")
 }
 
 // Columnas de v_costos_productos desconocidas — completar tras verificar en psql:
 //   SELECT column_name, data_type, character_maximum_length, numeric_precision, numeric_scale
 //   FROM information_schema.columns
-//   WHERE table_schema = 'tenant_demo' AND table_name = 'v_costos_productos'
+//   WHERE table_schema = 'tenant_erp' AND table_name = 'v_costos_productos'
 //   ORDER BY ordinal_position;
 //
 // view VCostosProductos {
 //   id_producto Int @unique
 //   ... (agregar columnas exactas)
 //   @@map("v_costos_productos")
-//   @@schema("tenant_demo")
+//   @@schema("tenant_erp")
 // }
