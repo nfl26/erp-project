@@ -1,3 +1,14 @@
+> **ARCHIVADO el 2026-05-13** — Este ticket no se ejecuta.
+>
+> Fue reescrito en `prompts/backlog/T-007-multi-tenant-runtime.md` (pendiente).
+> Las razones del cambio:
+> 1. El schema `tenant_demo` pasó a llamarse `tenant_erp` en T-FIX-001.
+> 2. El enfoque original (replicar tablas por schema con SQL raw) fue
+>    reemplazado porque T-004 ya generó `schema.prisma` con `multiSchema`
+>    y `@@schema` por modelo, lo cual hace innecesaria la replicación manual.
+>
+> Este archivo se preserva como evidencia histórica del backlog. No editar.
+
 # T-007 · Schema PostgreSQL v1 — Tenants, extensiones y seeds base
 
 **Ticket Jira:** https://tu-org.atlassian.net/browse/T-007

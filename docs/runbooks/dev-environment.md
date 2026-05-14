@@ -107,7 +107,7 @@ Al terminar verá las URLs y credenciales de acceso.
 2. Login con `PGADMIN_DEFAULT_EMAIL` y `PGADMIN_DEFAULT_PASSWORD` de `.env`
 3. En el panel izquierdo: **Servers → ERP Local** (pre-configurado)
 4. Click derecho → **Connect** → ingresar `POSTGRES_PASSWORD` de `.env`
-5. Navegar a `Databases → erp_db → Schemas` para ver `tenant_demo`, `tenant_acme`, `tenant_beta`
+5. Navegar a `Databases → erp_db → Schemas` para ver `tenant_erp`, `tenant_acme`, `tenant_beta`
 
 ### RabbitMQ — exchanges disponibles
 
@@ -135,7 +135,7 @@ rabbitmqctl set_permissions -p /erp "$RABBITMQ_PUBLISHER_USER" "" ".*" ""
 
 `definitions.json` solo define la topología (vhosts, exchanges, queues) — estructuras sin secretos. Este patrón aplica igual en staging y producción: la topología va en git, las credenciales van en el gestor de secretos (External Secrets / AWS Secrets Manager en T-018).
 
-### Usuarios de desarrollo en `tenant_demo`
+### Usuarios de desarrollo en `tenant_erp`
 
 | Email | Password | Rol |
 |---|---|---|
@@ -153,7 +153,7 @@ La BD tiene 3 schemas de tenant + el schema `public`:
 ```
 erp_db
 ├── public                  ← tabla tenants (lista de tenants)
-├── tenant_demo             ← datos reales de Arteo (desde Excels) + 2 usuarios dev
+├── tenant_erp             ← datos reales de Arteo (desde Excels) + 2 usuarios dev
 ├── tenant_acme             ← vacío (listo para migraciones de Prisma)
 └── tenant_beta             ← vacío (listo para migraciones de Prisma)
 ```
@@ -167,7 +167,7 @@ SELECT * FROM public.tenants;
 -- demo  | Taller Arteo — Demo   | t
 ```
 
-`tenant_demo` tiene datos reales de Arteo: 14 categorías, 27 materiales, 50+ productos, recetas y precios de venta.
+`tenant_erp` tiene datos reales de Arteo: 14 categorías, 27 materiales, 50+ productos, recetas y precios de venta.
 
 ---
 

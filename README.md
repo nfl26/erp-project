@@ -73,7 +73,7 @@ Ver guía completa: [`docs/runbooks/dev-environment.md`](docs/runbooks/dev-envir
 ```bash
 ./scripts/dev-down.sh     # detener (conserva datos)
 ./scripts/dev-reset.sh    # reset completo (borra volúmenes)
-./scripts/dev-psql.sh     # shell psql en tenant_demo
+./scripts/dev-psql.sh     # shell psql en tenant_erp
 ```
 
 ## Arrancar el proyecto

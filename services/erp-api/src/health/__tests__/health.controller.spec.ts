@@ -4,19 +4,23 @@ import { PrismaService } from '../../shared/prisma/prisma.service';
 
 function mockPrisma(fail = false) {
   return {
-    $queryRaw: jest.fn().mockImplementation(() =>
-      fail
-        ? Promise.reject(new Error('db connection refused'))
-        : Promise.resolve([{ '?column?': 1 }]),
-    ),
+    $queryRaw: jest
+      .fn()
+      .mockImplementation(() =>
+        fail
+          ? Promise.reject(new Error('db connection refused'))
+          : Promise.resolve([{ '?column?': 1 }]),
+      ),
   } as unknown as PrismaService;
 }
 
 function mockRedis(response = 'PONG', fail = false) {
   return {
-    ping: jest.fn().mockImplementation(() =>
-      fail ? Promise.reject(new Error('redis down')) : Promise.resolve(response),
-    ),
+    ping: jest
+      .fn()
+      .mockImplementation(() =>
+        fail ? Promise.reject(new Error('redis down')) : Promise.resolve(response),
+      ),
   } as any;
 }
 
