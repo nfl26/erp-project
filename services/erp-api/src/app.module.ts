@@ -3,6 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { PrismaModule } from './shared/prisma/prisma.module';
 import { HealthModule } from './health/health.module';
+import { ProduccionModule } from './modules/produccion/produccion.module';
 
 @Module({
   imports: [
@@ -13,6 +14,7 @@ import { HealthModule } from './health/health.module';
     }),
     PrismaModule,
     HealthModule,
+    ProduccionModule,
   ],
 })
 export class AppModule {}
