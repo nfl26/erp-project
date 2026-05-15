@@ -1,6 +1,8 @@
 # Entorno local — nunca commitear
 .env
 *.local.env
+.env.local
+.env.*.local
 
 # Volúmenes Docker generados localmente
 volumes/
