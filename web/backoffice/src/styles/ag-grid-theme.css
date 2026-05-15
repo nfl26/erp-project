@@ -1,0 +1,25 @@
+/* Override de ag-grid con design tokens del ERP
+   Aplicado via clase .ag-theme-erp en el host de <app-grid> */
+
+@import './tokens.css';
+
+.ag-theme-erp {
+  --ag-font-family: var(--font-sans);
+  --ag-font-size: var(--font-size-sm);
+  --ag-background-color: #ffffff;
+  --ag-header-background-color: rgb(var(--color-surface));
+  --ag-header-foreground-color: #374151;
+  --ag-border-color: #e2e8f0;
+  --ag-row-border-color: #f1f5f9;
+  --ag-row-hover-color: #f8fafc;
+  --ag-selected-row-background-color: #eff6ff;
+  --ag-range-selection-border-color: rgb(var(--color-primary));
+  --ag-input-focus-border-color: rgb(var(--color-primary));
+  --ag-checkbox-checked-color: rgb(var(--color-primary));
+  --ag-cell-horizontal-padding: var(--space-3);
+  --ag-header-height: 40px;
+  --ag-row-height: 36px;
+  --ag-grid-size: 4px;
+  --ag-list-item-height: 28px;
+  --ag-border-radius: var(--radius-sm);
+}

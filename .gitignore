@@ -16,6 +16,11 @@ dist/
 .next/
 .angular/
 
+# Angular backoffice
+web/backoffice/dist/
+web/backoffice/.angular/
+web/backoffice/.env.local
+
 # Python
 __pycache__/
 *.pyc
