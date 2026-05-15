@@ -52,6 +52,17 @@ erp-project/
 └── .github/                    ← workflows, templates, CODEOWNERS
 ```
 
+## Servicios web
+
+| Servicio | Directorio | Puerto | Stack |
+|---|---|---|---|
+| Portal público | `web/public/` | 3000 | Next.js 14 |
+| Backoffice operativo | `web/backoffice/` | 4200 | Angular 17 standalone |
+
+Ver arranque local de cada frontend en su propio README:
+- [`web/public/README.md`](web/public/README.md)
+- [`web/backoffice/README.md`](web/backoffice/README.md)
+
 ## Desarrollo local
 
 Requisitos: Docker Desktop 4.x, Docker Compose v2, 2 GB RAM libres.

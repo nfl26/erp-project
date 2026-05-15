@@ -7,7 +7,15 @@
       "Bash(Remove-Item \"c:\\\\Users\\\\natal\\\\OneDrive\\\\Documentos\\\\00.NFL\\\\05.ORGANIZACIONES\\\\00. Taller Arteo\\\\05.SITIOS WEB\\\\proyecto claude ERP mini\\\\erp-project\\\\services\\\\erp-api\\\\test-db-connection.js\")",
       "Bash(npx prisma *)",
       "Bash(docker compose *)",
-      "Bash(node -e ' *)"
+      "Bash(node -e ' *)",
+      "Bash(npm install *)",
+      "Bash(npm run *)",
+      "PowerShell(head)",
+      "Bash(npm --version)",
+      "Bash(npx @angular/cli@17 version)",
+      "Bash(npx @angular/cli@17 new backoffice --standalone --routing --style=css --skip-tests=false --strict --skip-git --package-manager=npm --no-interactive)",
+      "Bash(chmod +x \"/c/Users/natal/OneDrive/Documentos/00.NFL/05.ORGANIZACIONES/00. Taller Arteo/05.SITIOS WEB/proyecto claude ERP mini/erp-project/scripts/sync-tokens.sh\")",
+      "Bash(bash \"/c/Users/natal/OneDrive/Documentos/00.NFL/05.ORGANIZACIONES/00. Taller Arteo/05.SITIOS WEB/proyecto claude ERP mini/erp-project/scripts/sync-tokens.sh\")"
     ]
   }
 }
